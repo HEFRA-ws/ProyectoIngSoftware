@@ -1,40 +1,40 @@
-# Plan y evidencia de calidad
+# Calidad y evidencia de validación
 
-## Objetivo
-
-Validar que el prototipo registre eventos de forma consistente, proteja el acceso según el rol y conserve información para su investigación. La calidad se comprueba con pruebas automáticas de integración, revisión de código y recorridos manuales de la interfaz.
+Versión 0.2. Objetivo: proteger la declaración inicial, separar eventos e informes y verificar las operaciones por rol.
 
 ## Criterios de terminado
 
-1. El comportamiento cumple los criterios de la historia seleccionada.
-2. Las entradas obligatorias se validan en cliente y servidor.
-3. Las acciones restringidas se autorizan en la API.
-4. Las pruebas de regresión relacionadas pasan.
-5. Se actualizan la documentación y la issue correspondiente.
-6. La funcionalidad puede demostrarse con datos ficticios.
+Cumplir criterios de aceptación, validar entradas en servidor, aplicar permisos, pasar pruebas relacionadas, revisar interfaz y actualizar documentación. Las historias parciales conservan sus pendientes.
 
-## Pruebas automatizadas
+## Pruebas de integración
 
-Archivo: `test/api.test.js`. Ejecución: `pnpm test`. La suite utiliza MongoDB temporal aislado, no la base de la demostración.
+Ejecución: `pnpm test`. Archivo: `test/api.test.js`. Base MongoDB aislada y servidor temporal; no utiliza la base de la demostración.
 
-| Área | Comprobaciones |
+La suite actual contiene **29 casos de comprobación**, agrupados en una prueba principal; Node Test Runner informa **30 pruebas** contando el grupo.
+
+| Área | Evidencia |
 | --- | --- |
-| Autenticación | Sesión obligatoria, credenciales incorrectas, cuatro roles, cookie HttpOnly, cierre de sesión |
-| Seguridad | Hash no expuesto, separación por propietario, prohibición de cambios no autorizados, origen cruzado, límite de intentos |
-| Registro | Campos obligatorios, fecha inválida/futura, tipo permitido, código, personas e historial |
-| Investigación | Clasificación previa, prohibición de duplicado, causas y conclusión persistidas |
-| Evidencia | Tipo falso, tamaño excesivo, consulta de metadatos, descarga binaria, bloqueo del coordinador |
+| Migración | Conserva código, declaración e historial; cambia referencia de evidencia; repetición idempotente |
+| Autenticación | Sesión obligatoria, credenciales incorrectas, roles, cookie HttpOnly, limitación y logout |
+| Evento | Campos, fecha válida no futura, personas, código y actividad |
+| Propiedad y permisos | Aislamiento de eventos e informes; bloqueo de cambios por trabajador/coordinador |
+| Verificación | Solo SST; Leve, Grave, Mortal; rechazo de Muy grave y de gravedad en incidentes |
+| Investigación | Verificación previa y persistencia de causas e historial para ambos tipos |
+| Informe | No se crea automáticamente; exige accidente verificado; validación de catálogos y campos |
+| Concurrencia | Creación simultánea produce un informe y un conflicto; versiones obsoletas devuelven 409 |
+| Emisión | Documento Emitido protegido; no cierra evento ni reemplaza declaración |
+| Evidencia | Tamaño y cabecera, metadatos, descarga autorizada y bloqueo al coordinador |
 
-La suite contiene 16 casos de comprobación, agrupados en una prueba principal. Node Test Runner contabiliza también el grupo, por lo que informa 17 pruebas en total.
+## Recorrido manual v0.2
 
-## Revisión manual
+Login trabajador, registro de accidente ficticio con actividad, consulta sin informe; cambio a SST, verificación leve, creación de borrador y emisión. Se comprobó que la declaración inicial y el historial del evento se mantienen separados del documento emitido.
 
-Se revisan login, creación del reporte, clasificación, investigación, búsqueda y visualización en escritorio y ancho móvil. La evidencia visual se conserva en `docs/imagenes/` cuando está disponible. La prueba manual no sustituye las comprobaciones de permisos de la API.
+La interfaz incorpora navegación Eventos e Informes SST. Las capturas de la versión 0.1 se conservan como evidencia histórica; las nuevas capturas se identifican como v0.2.
 
-## Defecto identificado
+## Defectos y regresión
 
-[Issue #1](https://github.com/HEFRA-ws/ProyectoIngSoftware/issues/1): la ruta para adjuntar evidencia autorizaba la lectura del caso, pero no excluía al coordinador de la escritura. Corrección: bloqueo explícito en la API y prueba de regresión esperando HTTP 403.
+Issue #1: carga de evidencia del coordinador bloqueada en API y cubierta por regresión. Se conservan las pruebas negativas al añadir el informe independiente.
 
-## Límites de validación
+## Límites
 
-No se han ejecutado pruebas de 50 usuarios concurrentes, auditoría externa de seguridad, medición de disponibilidad ni verificación de cumplimiento legal. No se afirma un 99 % de disponibilidad ni tiempos máximos de respuesta sin medirlos. El entorno cloud debe verificarse después del despliegue.
+Pendientes: carga de 50 usuarios, accesibilidad exhaustiva, antivirus, auditoría externa, respaldo/restauración y verificación del despliegue. No se afirma 99 % de disponibilidad ni tiempos máximos medidos. La existencia del workflow no acredita éxito: comprobar cada ejecución en GitHub Actions.

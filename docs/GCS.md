@@ -1,6 +1,6 @@
 # Plan de gestión de la configuración del software
 
-Proyecto: Vigía SST. Versión documental: 0.1. Fecha de preparación: 13 de octubre de 2026. Estado: propuesta inicial para revisión académica.
+Proyecto: Vigía SST. Versión documental: 0.2. Fecha de preparación: 18 de octubre de 2026. Estado: propuesta inicial para revisión académica.
 
 ## 1. Propósito y alcance
 
@@ -10,7 +10,7 @@ Identificar y controlar los elementos que forman el prototipo, mantener trazabil
 
 | Elemento | Ubicación | Control |
 | --- | --- | --- |
-| API y permisos | server.js | Git y pruebas de integración |
+| API y permisos | server.js, lib/ | Git y pruebas de integración |
 | Interfaz | public/ | Git y revisión visual |
 | Dependencias | package.json, pnpm-lock.yaml | Versiones registradas y lockfile |
 | Pruebas y automatización | test/, .github/workflows/ | GitHub Actions |
@@ -22,7 +22,7 @@ Los datos de usuarios, sesiones, reportes y adjuntos se almacenan en MongoDB y n
 
 ## 3. Repositorio y líneas base
 
-Repositorio: https://github.com/HEFRA-ws/ProyectoIngSoftware. La rama `main` contiene la versión revisada disponible. Antes de la primera entrega se prepara la etiqueta `v0.1.0` solo después de completar las comprobaciones y publicar el código. Una etiqueta identifica código, no certifica despliegue ni cumplimiento de todos los requisitos.
+Repositorio: https://github.com/HEFRA-ws/ProyectoIngSoftware. La rama main contiene la versión revisada disponible. La línea base inicial se identifica con la etiqueta v0.1.0; la presente revisión corresponde a la versión 0.2. Una etiqueta identifica código, no certifica despliegue ni cumplimiento de todos los requisitos.
 
 ## 4. Control de cambios
 
@@ -52,6 +52,10 @@ Para revertir código publicado, preferir `git revert` al borrado o reescritura 
 
 Coordinación: priorizar cambios y autorizar la línea base académica. Desarrollo: implementar y documentar. QA: reproducir defectos y validar correcciones. Despliegue: configurar ambiente y verificar persistencia. Las personas responsables se asignarán con el equipo; no se presenta una aprobación ficticia.
 
-## 10. Registro del estado
+## 10. Migración y compatibilidad
+
+La versión 0.2 separa events de accidentReports. Al arrancar se renombra la colección antigua reports y se cambia reportId a eventId en evidencia. Se conservan códigos e historial; si existen reports y events simultáneamente el arranque se detiene para revisión. No se generan informes ni gravedad retrospectiva. Actualizar interfaz y servidor juntos, pues la API utiliza /api/events. Antes de migrar información que se deba conservar, preparar un respaldo de la base.
+
+## 11. Registro del estado
 
 El plan de sprints, las issues y el historial Git registran trabajo completado y pendiente. La memoria personal de estudio y las credenciales no forman parte del repositorio público.

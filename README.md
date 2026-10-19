@@ -2,6 +2,14 @@
 
 Prototipo académico de una aplicación web para registrar y hacer seguimiento a accidentes e incidentes laborales.
 
+## Corrección de la versión 0.2
+
+El **evento** es la declaración inicial del accidente o incidente. El **informe interno SST** es un documento posterior y separado, creado solo para un accidente verificado. La investigación se mantiene para ambos tipos. Emitir un informe no cierra el evento.
+
+Al iniciar se migran los registros de `reports` a `events` y los vínculos de evidencia a `eventId`, conservando los códigos. No se inventa gravedad para clasificaciones antiguas: requieren verificación SST. La API de eventos ahora utiliza `/api/events`; los informes están en `/api/accident-reports`.
+
+Las observaciones del profesor y las decisiones de formato propuestas por el equipo están en [Correcciones](docs/Correcciones.md). El formulario interno no es FURAT ni realiza envío a la ARL.
+
 ## Tecnologías
 
 | Capa | Tecnología |
@@ -17,10 +25,11 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 ## Funcionalidades actuales
 
 - Inicio de sesión con correo y contraseña, sesiones de ocho horas y permisos verificados en el servidor.
-- Registro de accidentes e incidentes con código único y personas involucradas.
+- Registro de accidentes e incidentes por trabajador y SST, con código, actividad inicial y personas involucradas.
 - Carga y descarga autorizada de PNG, JPG y PDF, hasta 2 MB por archivo y cinco adjuntos por reporte.
 - Consulta y búsqueda por código, título y área; filtros por tipo y estado.
-- Clasificación del evento e investigación de causas por el profesional SST.
+- Verificación de SST e investigación de causas. Accidentes clasificados como Leve, Grave o Mortal.
+- Informe interno del accidente independiente del evento, con campos estructurados, borrador, emisión e historial propio. Los incidentes conservan investigación.
 - Historial de cambios y resumen básico calculado con los datos visibles para cada rol.
 
 Pendientes: acciones correctivas y cierre de casos, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El inicio con Google también queda fuera de esta versión.
@@ -56,9 +65,9 @@ En producción el servidor exige `MONGODB_URI`; no inicia el MongoDB de desarrol
 
 | Rol | Correo | Permiso principal |
 | --- | --- | --- |
-| Trabajador | trabajador@vigia.demo | Crear y consultar sus propios reportes |
-| Profesional SST | sst@vigia.demo | Consultar, clasificar e investigar eventos |
-| Coordinador | coordinador@vigia.demo | Consultar todos los reportes y su evidencia |
+| Trabajador | trabajador@vigia.demo | Registrar y consultar sus eventos e informes asociados |
+| Profesional SST | sst@vigia.demo | Registrar, verificar e investigar eventos; elaborar informes |
+| Coordinador | coordinador@vigia.demo | Consultar todos los eventos, informes y evidencia |
 | Administrador | admin@vigia.demo | Acceso operativo a los eventos; gestión de usuarios pendiente |
 
 Los cuatro accesos usan el valor de `DEMO_PASSWORD`. Los usuarios se crean únicamente si la colección de usuarios está vacía. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
@@ -84,15 +93,15 @@ Los cuatro accesos usan el valor de `DEMO_PASSWORD`. Los usuarios se crean únic
 pnpm test
 ```
 
-Las pruebas de integración levantan una base MongoDB aislada y un servidor en un puerto temporal. Verifican autenticación, autorización, validaciones, separación de reportes, clasificación, investigación, adjuntos y cierre de sesión. El flujo de GitHub Actions ejecuta estas comprobaciones en cada push a `main` y en pull requests.
+Las pruebas de integración levantan una base MongoDB aislada y un servidor en un puerto temporal. Verifican autenticación, autorización, validaciones, separación de eventos e informes, verificación, investigación y emisión, adjuntos y cierre de sesión. El flujo de GitHub Actions ejecuta estas comprobaciones en cada push a `main` y en pull requests.
 
-Consulta [Calidad](docs/Calidad.md), [Riesgos](docs/Riesgos.md), [Gestión de configuración](docs/GCS.md) y [Plan de sprints](docs/Sprints.md).
+Consulta [Historias de usuario](docs/Historias-de-usuario.md), [Correcciones](docs/Correcciones.md), [Diagramas](docs/Diagramas.md), [Calidad](docs/Calidad.md), [Riesgos](docs/Riesgos.md), [Gestión de configuración](docs/GCS.md) y [Plan de sprints](docs/Sprints.md).
 
 Documentación en [la wiki](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki). Seguimiento en [GitHub Projects](https://github.com/users/HEFRA-ws/projects/2). El documento de GCS se entrega también [en PDF fuera de la wiki](docs/GCS.pdf).
 
-[Diapositivas de la primera demostración](docs/Presentacion-Vigia-SST.pptx).
+[Diapositivas de la primera demostración, versión 0.1](docs/Presentacion-Vigia-SST.pptx).
 
-![Panel del prototipo](docs/imagenes/panel-escritorio.png)
+![Listado independiente de informes SST, versión 0.2](docs/imagenes/informes-v02.png)
 
 ## Despliegue
 

@@ -1,24 +1,27 @@
 # Vigía SST
 
-Aplicación web académica para registrar e investigar accidentes e incidentes laborales. Esta documentación describe el prototipo disponible y distingue los módulos pendientes.
+Aplicación web académica para registrar accidentes e incidentes laborales, verificar los eventos y elaborar un informe interno independiente del accidente.
 
-## Problema
+## Problema y usuarios
 
-Los reportes en papel, hojas sueltas o mensajes dificultan consultar eventos, reunir evidencia e investigar sus causas. El proyecto propone centralizar el reporte, su clasificación y el seguimiento.
+Centralizar la declaración inicial, la evidencia y la investigación para facilitar el seguimiento. Trabajador y profesional SST registran eventos. SST verifica e investiga y elabora informes de accidentes. Coordinador consulta; administrador dispone de permisos operativos, con la gestión de cuentas pendiente.
 
-## Usuarios
+## Documentación del proyecto
 
-Trabajador, profesional SST, coordinador y administrador. Los permisos actuales y las responsabilidades se describen en [Arquitectura](Arquitectura.md).
+- [Historias de usuario completas](Historias-de-usuario.md).
+- [Correcciones de la revisión del prototipo](Correcciones.md).
+- [Arquitectura y API](Arquitectura.md).
+- [Diagramas](Diagramas.md): clases, secuencias y entidad-relación.
+- [Calidad y pruebas](Calidad.md).
+- [Riesgos del software](Riesgos.md).
+- [Sprints](Sprints.md).
+- [Despliegue](Despliegue.md).
+- [Gestión de configuración](GCS.md).
 
-## Documentación
+## Estado
 
-- [Arquitectura y modelo de datos](Arquitectura.md)
-- [Calidad y pruebas](Calidad.md)
-- [Riesgos del software](Riesgos.md)
-- [Gestión de configuración](GCS.md)
-- [Sprints y alcance](Sprints.md)
-- [Despliegue](Despliegue.md)
+Versión 0.2: evento e informe separados, verificación de SST y gravedad de accidente. El informe es una propuesta interna del proyecto, no FURAT ni envío a ARL. Los incidentes mantienen investigación.
 
-La base documental del primer avance se conserva en [el repositorio original](https://github.com/JuanesBD/Avance-1-de-Proyecto/wiki). Este prototipo cambia la tecnología backend a Node.js y Express, mantiene MongoDB y acota el alcance para la revisión.
+Las observaciones docentes se recibieron durante la revisión del prototipo, sin entrega formal previa. Su alcance y las decisiones propuestas por el equipo están registrados en Correcciones.
 
-No se han recibido aún correcciones del profesor. Las observaciones identificadas en la revisión técnica no se presentan como retroalimentación docente.
+Repositorio: https://github.com/HEFRA-ws/ProyectoIngSoftware. Referencia inicial: https://github.com/JuanesBD/Avance-1-de-Proyecto/wiki.

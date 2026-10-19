@@ -1,66 +1,80 @@
 # Arquitectura y modelo de datos
 
-## Arquitectura
+Versión 0.2. El registro del evento, su investigación y el informe interno del accidente son elementos distintos.
 
 ```mermaid
 flowchart LR
-  U[Navegador: HTML, Bootstrap, JavaScript] -->|HTTP JSON y cookie de sesión| A[API REST: Node.js y Express]
-  A -->|Controlador oficial| D[(MongoDB)]
-  G[GitHub] --> C[GitHub Actions: pruebas]
-  G -. Despliegue pendiente .-> R[Render]
-  R -. Conexión privada prevista .-> M[(MongoDB Atlas)]
+  U[Navegador: Bootstrap y JavaScript] -->|Sesión y API REST| A[Node.js y Express]
+  A --> E[(events: registro inicial)]
+  A --> I[(accidentReports: informe SST)]
+  A --> D[(MongoDB: usuarios, sesiones y evidencia)]
+  G[GitHub] --> C[GitHub Actions: integración]
 ```
 
-La interfaz y la API se sirven desde el mismo origen. No se requiere configurar CORS. En desarrollo se puede iniciar MongoDB local con persistencia en disco; en producción se usa Atlas.
+## Colecciones y responsabilidades
 
-## Colecciones
-
-| Colección | Campos principales | Finalidad |
+| Colección | Información | Control |
 | --- | --- | --- |
-| users | id, name, email, password, role | Cuentas, hash con sal y roles |
-| sessions | _id, userId, expires | Hash del token y expiración |
-| reports | id, owner, reporter, title, type, area, location, date, status, people, classification, investigation, history, version | Evento y trazabilidad |
-| evidence | id, reportId, name, type, size, content, createdAt | Archivos binarios asociados al evento |
-| attempts | _id, count, expires | Límite de intentos fallidos |
+| users | Cuenta, hash de contraseña y rol | Autenticación |
+| sessions | Hash del token, usuario y expiración | Cookie HttpOnly y TTL |
+| events | Declaración, actividad, personas, verificación, investigación e historial | Propietario, rol y versión |
+| accidentReports | Documento interno, evento asociado, autor, gravedad, datos verificados y estado propio | Un informe por accidente; solo SST edita |
+| evidence | Binario y metadatos asociados a eventId | Autorización en carga y descarga |
+| attempts | Intentos fallidos y expiración | Limitación de login |
 
-Las personas involucradas, la clasificación, la investigación y el historial se embeben en el reporte. Los adjuntos se separan para no cargar binarios al consultar listados. Los índices TTL eliminan sesiones e intentos expirados; el servidor comprueba la fecha de sesión incluso antes de que MongoDB elimine el registro.
+Los catálogos iniciales de actividad, mecanismo, lesión y parte afectada se definen en `lib/accident-reports.js` y se entregan a la interfaz mediante la API. Son opciones internas del prototipo, no un catálogo oficial FURAT.
 
-## Estados del prototipo
+## Estados y reglas
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Reportado: Crear reporte
-  Reportado --> EnInvestigacion: Clasificar como SST
-  EnInvestigacion --> EnInvestigacion: Guardar investigación
+  state "Evento" as E {
+    [*] --> Reportado
+    Reportado --> EnInvestigacion: SST verifica tipo y gravedad
+    EnInvestigacion --> EnInvestigacion: Actualizar investigación
+  }
+  state "Informe de accidente" as I {
+    [*] --> Borrador: SST elabora para accidente verificado
+    Borrador --> Borrador: Guardar con versión
+    Borrador --> Emitido: SST emite
+  }
 ```
 
-La siguiente versión definirá acciones correctivas, validación de cumplimiento y cierre. No existe un botón de cierre simulado.
+El estado del informe no sustituye al del evento. Emitirlo no cierra el caso. Un incidente puede investigarse, pero no genera informe de accidente. No hay integración con ARL, FURAT, firma digital ni exportación PDF de este informe todavía.
 
 ## Permisos
 
-| Acción | Trabajador | SST | Coordinador | Administrador |
+| Acción | Trabajador | Profesional SST | Coordinador | Administrador |
 | --- | --- | --- | --- | --- |
-| Crear reporte | Sí | Sí | Sí | Sí |
-| Ver reportes | Propios | Todos | Todos | Todos |
+| Registrar evento | Sí | Sí | No | Sí |
+| Consultar eventos e informes | Propios | Todos | Todos | Todos |
 | Adjuntar evidencia | Propios | Todos | No | Todos |
-| Descargar evidencia | Propios | Todos | Todos | Todos |
-| Clasificar e investigar | No | Sí | No | Sí |
+| Verificar e investigar | No | Sí | No | Sí |
+| Crear, editar y emitir informe | No | Sí | No | Sí |
 
-El coordinador puede crear un reporte inicial como usuario, pero en los casos existentes su función de seguimiento es de consulta. La gestión administrativa de cuentas queda pendiente.
+Los borradores también son consultables por el propietario del evento; la escritura se reserva a SST y administrador. El módulo de administración de cuentas sigue pendiente.
 
-## API
+## API del dominio
 
 | Método | Ruta | Operación |
 | --- | --- | --- |
-| GET | /api/health | Estado del servidor y conexión a MongoDB |
-| POST | /api/login | Validar credenciales y crear sesión |
-| GET | /api/me | Consultar usuario autenticado |
-| POST | /api/logout | Eliminar sesión |
-| GET | /api/reports | Listar reportes autorizados |
-| POST | /api/reports | Registrar evento |
-| PATCH | /api/reports/:id | Clasificar o guardar investigación |
-| GET | /api/reports/:id/evidence | Listar metadatos de adjuntos |
-| POST | /api/reports/:id/evidence | Validar y guardar adjunto |
-| GET | /api/reports/:id/evidence/:fileId | Descargar adjunto autorizado |
+| GET / POST | /api/events | Consultar o registrar evento |
+| PATCH | /api/events/:id | Verificar con acción classify o investigar con acción investigate |
+| GET / POST | /api/events/:id/evidence | Consultar o adjuntar evidencia |
+| GET | /api/events/:id/evidence/:fileId | Descargar evidencia |
+| GET | /api/report-options | Catálogos del formulario SST |
+| GET | /api/accident-reports | Informes autorizados |
+| GET / POST / PUT | /api/events/:id/report | Consultar, crear o actualizar borrador |
+| POST | /api/events/:id/report/finalize | Emitir la versión guardada |
 
-La actualización de clasificación e investigación utiliza el campo `version` para detectar modificaciones simultáneas. Un conflicto devuelve HTTP 409.
+Las rutas /api/login, /api/me, /api/logout y /api/health se mantienen. Las rutas antiguas /api/reports se sustituyen por /api/events. Debe actualizarse el navegador junto al servidor.
+
+## Migración de la versión 0.1
+
+Al iniciar, `lib/migrations.js` renombra la colección antigua reports a events, conservando documentos, códigos e historial. También cambia el vínculo de evidencia reportId a eventId. Si ya existen ambas colecciones, detiene el arranque para evitar sobrescribir datos. La operación es idempotente y tiene prueba de integración.
+
+Las clasificaciones antiguas no se convierten en verificaciones nuevas con gravedad inventada. El caso debe ser revisado por SST; la investigación anterior permanece guardada. Los informes internos se crean solo mediante una acción explícita.
+
+## Diagramas
+
+[Clases](Diagrama-Clases.md), [secuencias](Diagrama-Secuencias.md) y [entidad-relación](Diagrama-ER.md).
