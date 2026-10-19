@@ -11,7 +11,8 @@ process.env.DEMO_PASSWORD = "PruebasLocales123!";
 process.env.MONGODB_DB = "vigia_test";
 process.env.DATA_DIR = directory;
 delete process.env.MONGODB_URI;
-const { app, closeDatabase } = await import("../server.js");
+const { app, closeDatabase, client } = await import("../server.js");
+const { migrateLegacyEvents } = await import("../lib/migrations.js");
 const server = app.listen(0, "127.0.0.1");
 await new Promise((r) => server.once("listening", r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -56,9 +57,24 @@ after(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 test("API: autenticación, roles, persistencia, investigación y evidencia", async (t) => {
+  await t.test("migra los registros y adjuntos antiguos sin cambiar sus códigos", async () => {
+    const legacy = client.db("vigia_legacy_test");
+    await legacy.collection("reports").insertOne({id:"SST-ANTERIOR",description:"Datos previos",history:[{text:"Reporte registrado"}]});
+    await legacy.collection("evidence").insertOne({id:"archivo-anterior",reportId:"SST-ANTERIOR",content:Buffer.from("prueba")});
+    await migrateLegacyEvents(legacy);
+    await migrateLegacyEvents(legacy);
+    const saved=await legacy.collection("events").findOne({id:"SST-ANTERIOR"});
+    assert.equal(saved.description,"Datos previos");
+    assert.equal(saved.history.length,1);
+    const file=await legacy.collection("evidence").findOne({id:"archivo-anterior"});
+    assert.equal(file.eventId,saved.id);
+    assert.equal(file.reportId,undefined);
+    assert.equal(await legacy.collection("accidentReports").countDocuments(),0);
+    await legacy.dropDatabase();
+  });
   let worker, sst, admin, coordinator, id, privateId, fileId;
   await t.test("bloquea consultas sin sesión", async () =>
-    assert.equal((await request("/reports")).response.status, 401),
+    assert.equal((await request("/events")).response.status, 401),
   );
   await t.test(
     "rechaza credenciales incorrectas sin revelar si existe el usuario",
@@ -88,13 +104,13 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       { ...event, date: "2099-01-01T00:00:00Z" },
     ])
       assert.equal(
-        (await request("/reports", "POST", value, worker)).response.status,
+        (await request("/events", "POST", value, worker)).response.status,
         400,
       );
   });
   await t.test("guarda personas y genera código e historial", async () => {
     const r = await request(
-      "/reports",
+      "/events",
       "POST",
       {
         ...event,
@@ -116,16 +132,16 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     assert.equal(r.result.history.length, 1);
     assert.equal(r.result.people[0].kind, "Testigo");
   });
-  await t.test("aísla los reportes de otro usuario", async () => {
-    const own = await request("/reports", "POST", event, admin);
+  await t.test("aísla los eventos de otro usuario", async () => {
+    const own = await request("/events", "POST", event, admin);
     privateId = own.result.id;
-    const r = await request("/reports", "GET", null, worker);
+    const r = await request("/events", "GET", null, worker);
     assert.ok(r.result.some((r) => r.id === id));
     assert.ok(!r.result.some((r) => r.id === privateId));
     assert.equal(
       (
         await request(
-          "/reports/" + privateId + "/evidence",
+          "/events/" + privateId + "/evidence",
           "GET",
           null,
           worker,
@@ -139,7 +155,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       assert.equal(
         (
           await request(
-            "/reports/" + id,
+            "/events/" + id,
             "PATCH",
             { action: "classify", type: "Incidente", notes: "Prueba" },
             cookie,
@@ -152,7 +168,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     assert.equal(
       (
         await request(
-          "/reports/" + id,
+          "/events/" + id,
           "PATCH",
           {
             action: "investigate",
@@ -172,18 +188,18 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       type: "Incidente",
       notes: "Clasificación de prueba.",
     };
-    const r = await request("/reports/" + id, "PATCH", action, sst);
+    const r = await request("/events/" + id, "PATCH", action, sst);
     assert.equal(r.response.status, 200);
     assert.equal(r.result.status, "En investigación");
     assert.equal(r.result.classification.actor, "Daniel Rojas");
     assert.equal(
-      (await request("/reports/" + id, "PATCH", action, sst)).response.status,
+      (await request("/events/" + id, "PATCH", action, sst)).response.status,
       409,
     );
   });
   await t.test("guarda investigación e historial", async () => {
     const r = await request(
-      "/reports/" + id,
+      "/events/" + id,
       "PATCH",
       {
         action: "investigate",
@@ -198,7 +214,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     assert.equal(r.result.history.length, 3);
   });
   await t.test("rechaza formato falso y archivos grandes", async () => {
-    const endpoint = "/reports/" + id + "/evidence";
+    const endpoint = "/events/" + id + "/evidence";
     assert.equal(
       (
         await request(
@@ -236,7 +252,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       assert.equal(
         (
           await request(
-            "/reports/" + id + "/evidence",
+            "/events/" + id + "/evidence",
             "POST",
             {
               name: "prueba.pdf",
@@ -254,7 +270,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     async () => {
       const content = Buffer.from("%PDF-1.4\nDocumento ficticio de prueba.");
       const r = await request(
-        "/reports/" + id + "/evidence",
+        "/events/" + id + "/evidence",
         "POST",
         {
           name: "prueba.pdf",
@@ -266,7 +282,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       assert.equal(r.response.status, 201);
       fileId = r.result.id;
       const list = await request(
-        "/reports/" + id + "/evidence",
+        "/events/" + id + "/evidence",
         "GET",
         null,
         worker,
@@ -274,7 +290,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       assert.equal(list.result.length, 1);
       assert.equal(list.result[0].content, undefined);
       const download = await request(
-        "/reports/" + id + "/evidence/" + fileId,
+        "/events/" + id + "/evidence/" + fileId,
         "GET",
         null,
         worker,
@@ -285,7 +301,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
   );
   await t.test("bloquea solicitudes de otro origen", async () =>
     assert.equal(
-      (await request("/reports", "POST", event, worker, "https://otro.example"))
+      (await request("/events", "POST", event, worker, "https://otro.example"))
         .response.status,
       403,
     ),
@@ -312,7 +328,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       200,
     );
     assert.equal(
-      (await request("/reports", "GET", null, worker)).response.status,
+      (await request("/events", "GET", null, worker)).response.status,
       401,
     );
   });

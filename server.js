@@ -1,4 +1,5 @@
 import express from "express";
+import { migrateLegacyEvents } from "./lib/migrations.js";
 import { MongoClient } from "mongodb";
 import {
   randomBytes,
@@ -32,18 +33,19 @@ if (!uri) {
 export const client = new MongoClient(uri, { serverSelectionTimeoutMS: 15000 });
 await client.connect();
 const db = client.db(process.env.MONGODB_DB || "vigia");
+await migrateLegacyEvents(db);
 const users = db.collection("users"),
   sessions = db.collection("sessions"),
-  reports = db.collection("reports"),
+  events = db.collection("events"),
   attempts = db.collection("attempts"),
   evidence = db.collection("evidence");
 await Promise.all([
   users.createIndex({ email: 1 }, { unique: true }),
   sessions.createIndex({ expires: 1 }, { expireAfterSeconds: 0 }),
-  reports.createIndex({ id: 1 }, { unique: true }),
-  reports.createIndex({ owner: 1, createdAt: -1 }),
+  events.createIndex({ id: 1 }, { unique: true }),
+  events.createIndex({ owner: 1, createdAt: -1 }),
   attempts.createIndex({ expires: 1 }, { expireAfterSeconds: 0 }),
-  evidence.createIndex({ reportId: 1 }),
+  evidence.createIndex({ eventId: 1 }),
 ]);
 const hashToken = (t) => createHash("sha256").update(t).digest("hex");
 async function passwordHash(p) {
@@ -89,7 +91,7 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
     },
   ]);
   const now = new Date().toISOString();
-  await reports.insertMany(
+  await events.insertMany(
     [
       [
         "001",
@@ -131,7 +133,7 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
         {
           date: now,
           actor: "Datos de demostración",
-          text: "Reporte registrado",
+          text: "Evento registrado",
         },
         ...(status === "En investigación"
           ? [
@@ -244,9 +246,9 @@ app.post("/api/logout", async (req, res) => {
   });
   res.json({ ok: true });
 });
-app.get("/api/reports", async (req, res) =>
+app.get("/api/events", async (req, res) =>
   res.json(
-    await reports
+    await events
       .find(privileged(req.user) ? {} : { owner: req.user.id }, {
         projection: { _id: 0 },
       })
@@ -254,7 +256,7 @@ app.get("/api/reports", async (req, res) =>
       .toArray(),
   ),
 );
-app.post("/api/reports", async (req, res) => {
+app.post("/api/events", async (req, res) => {
   const b = req.body;
   if (!["Accidente", "Incidente"].includes(b.type))
     throw fail(400, "Tipo de evento inválido.");
@@ -287,23 +289,23 @@ app.post("/api/reports", async (req, res) => {
       createdAt: now,
       version: 0,
       history: [
-        { date: now, actor: req.user.name, text: "Reporte registrado" },
+        { date: now, actor: req.user.name, text: "Evento registrado" },
       ],
     };
-  await reports.insertOne({ ...report });
+  await events.insertOne({ ...report });
   res.status(201).json(report);
 });
-async function authorizedReport(req) {
-  const r = await reports.findOne({ id: req.params.id });
-  if (!r) throw fail(404, "Reporte no encontrado.");
+async function authorizedEvent(req) {
+  const r = await events.findOne({ id: req.params.id });
+  if (!r) throw fail(404, "Evento no encontrado.");
   if (!privileged(req.user) && r.owner !== req.user.id)
-    throw fail(403, "No tienes acceso a este reporte.");
+    throw fail(403, "No tienes acceso a este evento.");
   return r;
 }
-app.patch("/api/reports/:id", async (req, res) => {
+app.patch("/api/events/:id", async (req, res) => {
   if (!["Profesional SST", "Administrador"].includes(req.user.role))
     throw fail(403, "Esta acción requiere un profesional SST.");
-  const r = await authorizedReport(req),
+  const r = await authorizedEvent(req),
     b = req.body,
     now = new Date().toISOString(),
     change = {};
@@ -335,7 +337,7 @@ app.patch("/api/reports/:id", async (req, res) => {
     };
     text = "Investigación guardada";
   } else throw fail(400, "Acción inválida.");
-  const result = await reports.findOneAndUpdate(
+  const result = await events.findOneAndUpdate(
     { id: r.id, version: r.version },
     {
       $set: change,
@@ -345,7 +347,7 @@ app.patch("/api/reports/:id", async (req, res) => {
     { returnDocument: "after", projection: { _id: 0 } },
   );
   if (!result)
-    throw fail(409, "El reporte cambió. Actualiza e intenta de nuevo.");
+    throw fail(409, "El evento cambió. Actualiza e intenta de nuevo.");
   res.json(result);
 });
 const formats = {
@@ -363,10 +365,10 @@ const formats = {
     check: (b) => b.subarray(0, 5).toString() === "%PDF-",
   },
 };
-app.post("/api/reports/:id/evidence", async (req, res) => {
+app.post("/api/events/:id/evidence", async (req, res) => {
   if (req.user.role === "Coordinador")
     throw fail(403, "El coordinador tiene acceso de consulta.");
-  const r = await authorizedReport(req),
+  const r = await authorizedEvent(req),
     b = req.body,
     format = formats[b.type];
   if (!format || typeof b.content !== "string")
@@ -376,11 +378,11 @@ app.post("/api/reports/:id/evidence", async (req, res) => {
     throw fail(400, "El archivo debe pesar como máximo 2 MB.");
   if (!format.check(bytes))
     throw fail(400, "El contenido no corresponde al tipo de archivo.");
-  if ((await evidence.countDocuments({ reportId: r.id })) >= 5)
-    throw fail(400, "Máximo cinco archivos por reporte.");
+  if ((await evidence.countDocuments({ eventId: r.id })) >= 5)
+    throw fail(400, "Máximo cinco archivos por evento.");
   const file = {
     id: randomBytes(12).toString("hex"),
-    reportId: r.id,
+    eventId: r.id,
     name: field(b.name, "Nombre", 180),
     type: b.type,
     size: bytes.length,
@@ -392,19 +394,19 @@ app.post("/api/reports/:id/evidence", async (req, res) => {
     .status(201)
     .json({ id: file.id, name: file.name, size: file.size, type: file.type });
 });
-app.get("/api/reports/:id/evidence", async (req, res) => {
-  await authorizedReport(req);
+app.get("/api/events/:id/evidence", async (req, res) => {
+  await authorizedEvent(req);
   res.json(
     await evidence
-      .find({ reportId: req.params.id }, { projection: { _id: 0, content: 0 } })
+      .find({ eventId: req.params.id }, { projection: { _id: 0, content: 0 } })
       .toArray(),
   );
 });
-app.get("/api/reports/:id/evidence/:fileId", async (req, res) => {
-  await authorizedReport(req);
+app.get("/api/events/:id/evidence/:fileId", async (req, res) => {
+  await authorizedEvent(req);
   const file = await evidence.findOne({
     id: req.params.fileId,
-    reportId: req.params.id,
+    eventId: req.params.id,
   });
   if (!file) throw fail(404, "Archivo no encontrado.");
   res.set({
