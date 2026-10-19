@@ -1,5 +1,6 @@
 import express from "express";
 import { migrateLegacyEvents } from "./lib/migrations.js";
+import { registerAccidentReports } from "./lib/accident-reports.js";
 import { MongoClient } from "mongodb";
 import {
   randomBytes,
@@ -37,6 +38,7 @@ await migrateLegacyEvents(db);
 const users = db.collection("users"),
   sessions = db.collection("sessions"),
   events = db.collection("events"),
+  accidentReports = db.collection("accidentReports"),
   attempts = db.collection("attempts"),
   evidence = db.collection("evidence");
 await Promise.all([
@@ -44,6 +46,7 @@ await Promise.all([
   sessions.createIndex({ expires: 1 }, { expireAfterSeconds: 0 }),
   events.createIndex({ id: 1 }, { unique: true }),
   events.createIndex({ owner: 1, createdAt: -1 }),
+  accidentReports.createIndex({ eventId: 1 }, { unique: true }),
   attempts.createIndex({ expires: 1 }, { expireAfterSeconds: 0 }),
   evidence.createIndex({ eventId: 1 }),
 ]);
@@ -126,6 +129,8 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
       date: now,
       description:
         "Registro ficticio para demostrar el prototipo. No corresponde a una persona ni a un evento real.",
+      activityDescription:
+        "Actividad ficticia de demostración; pendiente de verificar por SST.",
       people: [],
       createdAt: now,
       version: 0,
@@ -257,6 +262,10 @@ app.get("/api/events", async (req, res) =>
   ),
 );
 app.post("/api/events", async (req, res) => {
+  if (
+    !["Trabajador", "Profesional SST", "Administrador"].includes(req.user.role)
+  )
+    throw fail(403, "El coordinador tiene acceso de consulta.");
   const b = req.body;
   if (!["Accidente", "Incidente"].includes(b.type))
     throw fail(400, "Tipo de evento inválido.");
@@ -284,13 +293,16 @@ app.post("/api/events", async (req, res) => {
       location: field(b.location, "Lugar"),
       date,
       description: field(b.description, "Descripción", 5000),
+      activityDescription: field(
+        b.activityDescription,
+        "Actividad realizada",
+        3000,
+      ),
       people,
       status: "Reportado",
       createdAt: now,
       version: 0,
-      history: [
-        { date: now, actor: req.user.name, text: "Evento registrado" },
-      ],
+      history: [{ date: now, actor: req.user.name, text: "Evento registrado" }],
     };
   await events.insertOne({ ...report });
   res.status(201).json(report);
@@ -311,23 +323,37 @@ app.patch("/api/events/:id", async (req, res) => {
     change = {};
   let text;
   if (b.action === "classify") {
-    if (r.status !== "Reportado")
-      throw fail(409, "El evento ya fue clasificado.");
+    if (r.verification) throw fail(409, "El evento ya fue verificado.");
     if (!["Accidente", "Incidente"].includes(b.type))
       throw fail(400, "Tipo inválido.");
+    if (
+      b.type === "Accidente" &&
+      !["Leve", "Grave", "Mortal"].includes(b.severity)
+    )
+      throw fail(
+        400,
+        "Selecciona la gravedad del accidente: Leve, Grave o Mortal.",
+      );
+    if (b.type === "Incidente" && b.severity)
+      throw fail(400, "La gravedad de accidente no aplica a incidentes.");
     Object.assign(change, {
       type: b.type,
       status: "En investigación",
-      classification: {
+      verification: {
+        type: b.type,
+        severity: b.type === "Accidente" ? b.severity : null,
         notes: field(b.notes, "Observaciones", 3000),
         actor: req.user.name,
         date: now,
       },
     });
-    text = "Evento clasificado como " + b.type;
+    text =
+      "Evento verificado como " +
+      b.type +
+      (b.type === "Accidente" ? " · " + b.severity : "");
   } else if (b.action === "investigate") {
-    if (r.status !== "En investigación")
-      throw fail(409, "Clasifica el evento antes de investigarlo.");
+    if (!r.verification)
+      throw fail(409, "Verifica el evento antes de investigarlo.");
     change.investigation = {
       immediate: field(b.immediate, "Causas inmediatas", 3000),
       basic: field(b.basic, "Causas básicas", 3000),
@@ -350,6 +376,7 @@ app.patch("/api/events/:id", async (req, res) => {
     throw fail(409, "El evento cambió. Actualiza e intenta de nuevo.");
   res.json(result);
 });
+registerAccidentReports(app, { events, accidentReports, authorizedEvent });
 const formats = {
   "image/png": {
     extension: "png",
@@ -426,16 +453,14 @@ app.get("/vendor/bootstrap.min.css", (req, res) =>
 app.use(express.static(resolve(root, "public")));
 app.use((error, req, res, next) => {
   const status = error.type === "entity.too.large" ? 413 : error.status || 500;
-  res
-    .status(status)
-    .json({
-      error:
-        status === 500
-          ? "No se pudo procesar la solicitud."
-          : status === 413
-            ? "La solicitud supera el tamaño permitido."
-            : error.message,
-    });
+  res.status(status).json({
+    error:
+      status === 500
+        ? "No se pudo procesar la solicitud."
+        : status === 413
+          ? "La solicitud supera el tamaño permitido."
+          : error.message,
+  });
   if (status === 500) console.error(error.message);
 });
 export async function closeDatabase() {

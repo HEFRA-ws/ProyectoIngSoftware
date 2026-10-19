@@ -49,6 +49,7 @@ const event = {
   area: "Almacén",
   location: "Pasillo",
   description: "Evento ficticio para verificar el flujo completo.",
+  activityDescription: "Transportaba cajas en el almacén",
   people: [],
 };
 after(async () => {
@@ -57,21 +58,43 @@ after(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 test("API: autenticación, roles, persistencia, investigación y evidencia", async (t) => {
-  await t.test("migra los registros y adjuntos antiguos sin cambiar sus códigos", async () => {
-    const legacy = client.db("vigia_legacy_test");
-    await legacy.collection("reports").insertOne({id:"SST-ANTERIOR",description:"Datos previos",history:[{text:"Reporte registrado"}]});
-    await legacy.collection("evidence").insertOne({id:"archivo-anterior",reportId:"SST-ANTERIOR",content:Buffer.from("prueba")});
-    await migrateLegacyEvents(legacy);
-    await migrateLegacyEvents(legacy);
-    const saved=await legacy.collection("events").findOne({id:"SST-ANTERIOR"});
-    assert.equal(saved.description,"Datos previos");
-    assert.equal(saved.history.length,1);
-    const file=await legacy.collection("evidence").findOne({id:"archivo-anterior"});
-    assert.equal(file.eventId,saved.id);
-    assert.equal(file.reportId,undefined);
-    assert.equal(await legacy.collection("accidentReports").countDocuments(),0);
-    await legacy.dropDatabase();
-  });
+  await t.test(
+    "migra los registros y adjuntos antiguos sin cambiar sus códigos",
+    async () => {
+      const legacy = client.db("vigia_legacy_test");
+      await legacy
+        .collection("reports")
+        .insertOne({
+          id: "SST-ANTERIOR",
+          description: "Datos previos",
+          history: [{ text: "Reporte registrado" }],
+        });
+      await legacy
+        .collection("evidence")
+        .insertOne({
+          id: "archivo-anterior",
+          reportId: "SST-ANTERIOR",
+          content: Buffer.from("prueba"),
+        });
+      await migrateLegacyEvents(legacy);
+      await migrateLegacyEvents(legacy);
+      const saved = await legacy
+        .collection("events")
+        .findOne({ id: "SST-ANTERIOR" });
+      assert.equal(saved.description, "Datos previos");
+      assert.equal(saved.history.length, 1);
+      const file = await legacy
+        .collection("evidence")
+        .findOne({ id: "archivo-anterior" });
+      assert.equal(file.eventId, saved.id);
+      assert.equal(file.reportId, undefined);
+      assert.equal(
+        await legacy.collection("accidentReports").countDocuments(),
+        0,
+      );
+      await legacy.dropDatabase();
+    },
+  );
   let worker, sst, admin, coordinator, id, privateId, fileId;
   await t.test("bloquea consultas sin sesión", async () =>
     assert.equal((await request("/events")).response.status, 401),
@@ -139,14 +162,8 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     assert.ok(r.result.some((r) => r.id === id));
     assert.ok(!r.result.some((r) => r.id === privateId));
     assert.equal(
-      (
-        await request(
-          "/events/" + privateId + "/evidence",
-          "GET",
-          null,
-          worker,
-        )
-      ).response.status,
+      (await request("/events/" + privateId + "/evidence", "GET", null, worker))
+        .response.status,
       403,
     );
   });
@@ -191,7 +208,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     const r = await request("/events/" + id, "PATCH", action, sst);
     assert.equal(r.response.status, 200);
     assert.equal(r.result.status, "En investigación");
-    assert.equal(r.result.classification.actor, "Daniel Rojas");
+    assert.equal(r.result.verification.actor, "Daniel Rojas");
     assert.equal(
       (await request("/events/" + id, "PATCH", action, sst)).response.status,
       409,
@@ -299,6 +316,415 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       assert.ok(Buffer.from(download.result).equals(content));
     },
   );
+  let accidentId, reportVersion;
+  const internalReport = {
+    affectedWorker: "Persona ficticia",
+    activity: "Manipulación de cargas",
+    mechanism: "Caída al mismo nivel",
+    injury: "Contusión",
+    bodyPart: "Miembros inferiores",
+    activityDetail: "Trasladaba cajas por el pasillo",
+    verifiedDescription:
+      "SST verificó el evento ficticio con la evidencia disponible.",
+    immediateMeasures: "Aislar el área y solicitar valoración.",
+  };
+  await t.test(
+    "trabajador y SST registran eventos sin generar informes",
+    async () => {
+      for (const cookie of [worker, sst]) {
+        const r = await request(
+          "/events",
+          "POST",
+          { ...event, type: "Accidente" },
+          cookie,
+        );
+        assert.equal(r.response.status, 201);
+        assert.equal(r.result.activityDescription, event.activityDescription);
+        assert.equal(
+          (
+            await request(
+              "/events/" + r.result.id + "/report",
+              "GET",
+              null,
+              cookie,
+            )
+          ).result,
+          null,
+        );
+        if (cookie === worker) accidentId = r.result.id;
+      }
+      assert.equal(
+        (await request("/events", "POST", event, coordinator)).response.status,
+        403,
+      );
+    },
+  );
+  await t.test(
+    "el informe exige verificación previa y permiso SST",
+    async () => {
+      for (const cookie of [worker, coordinator])
+        assert.equal(
+          (
+            await request(
+              "/events/" + accidentId + "/report",
+              "POST",
+              internalReport,
+              cookie,
+            )
+          ).response.status,
+          403,
+        );
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report",
+            "POST",
+            internalReport,
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+    },
+  );
+  await t.test(
+    "valida gravedad de accidente y no la admite en un incidente",
+    async () => {
+      for (const severity of [undefined, "Muy grave", "", "Severo"])
+        assert.equal(
+          (
+            await request(
+              "/events/" + accidentId,
+              "PATCH",
+              {
+                action: "classify",
+                type: "Accidente",
+                notes: "Prueba",
+                severity,
+              },
+              sst,
+            )
+          ).response.status,
+          400,
+        );
+      const incident = await request("/events", "POST", event, worker);
+      assert.equal(
+        (
+          await request(
+            "/events/" + incident.result.id,
+            "PATCH",
+            {
+              action: "classify",
+              type: "Incidente",
+              notes: "Prueba",
+              severity: "Leve",
+            },
+            sst,
+          )
+        ).response.status,
+        400,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + incident.result.id,
+            "PATCH",
+            { action: "classify", type: "Incidente", notes: "Prueba" },
+            sst,
+          )
+        ).response.status,
+        200,
+      );
+    },
+  );
+  await t.test(
+    "verifica accidentes leves, graves y mortales sin crear informes",
+    async () => {
+      for (const severity of ["Leve", "Grave", "Mortal"]) {
+        let target = accidentId;
+        if (severity !== "Leve")
+          target = (
+            await request(
+              "/events",
+              "POST",
+              { ...event, type: "Accidente" },
+              sst,
+            )
+          ).result.id;
+        const r = await request(
+          "/events/" + target,
+          "PATCH",
+          {
+            action: "classify",
+            type: "Accidente",
+            severity,
+            notes: "Clasificación de prueba respaldada por datos ficticios.",
+          },
+          sst,
+        );
+        assert.equal(r.response.status, 200);
+        assert.equal(r.result.verification.severity, severity);
+        assert.equal(
+          (await request("/events/" + target + "/report", "GET", null, sst))
+            .result,
+          null,
+        );
+      }
+    },
+  );
+  await t.test(
+    "un incidente investigado no genera informe de accidente",
+    async () => {
+      assert.equal(
+        (
+          await request(
+            "/events/" + id + "/report",
+            "POST",
+            internalReport,
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      const current = (await request("/events", "GET", null, sst)).result.find(
+        (r) => r.id === id,
+      );
+      assert.ok(current.investigation);
+    },
+  );
+  await t.test(
+    "valida campos del informe y catálogos en el servidor",
+    async () => {
+      for (const invalid of [
+        { ...internalReport, activity: "No existe" },
+        { ...internalReport, verifiedDescription: "" },
+        { ...internalReport, injury: "" },
+      ])
+        assert.equal(
+          (
+            await request(
+              "/events/" + accidentId + "/report",
+              "POST",
+              invalid,
+              sst,
+            )
+          ).response.status,
+          400,
+        );
+    },
+  );
+  await t.test(
+    "crea un único borrador incluso ante solicitudes simultáneas",
+    async () => {
+      const results = await Promise.all([
+        request(
+          "/events/" + accidentId + "/report",
+          "POST",
+          internalReport,
+          sst,
+        ),
+        request(
+          "/events/" + accidentId + "/report",
+          "POST",
+          internalReport,
+          sst,
+        ),
+      ]);
+      assert.deepEqual(
+        results.map((r) => r.response.status).sort(),
+        [201, 409],
+      );
+      const report = results.find((r) => r.response.status === 201).result;
+      assert.equal(report.status, "Borrador");
+      assert.equal(report.eventId, accidentId);
+      assert.equal(report.severity, "Leve");
+      assert.equal(report.authorId, "sst");
+      reportVersion = report.version;
+    },
+  );
+  await t.test(
+    "el informe conserva un relato verificado separado de la declaración inicial",
+    async () => {
+      const report = (
+        await request("/events/" + accidentId + "/report", "GET", null, worker)
+      ).result;
+      const current = (
+        await request("/events", "GET", null, worker)
+      ).result.find((r) => r.id === accidentId);
+      assert.equal(current.description, event.description);
+      assert.equal(current.status, "En investigación");
+      assert.equal(current.history.length, 2);
+      assert.equal(
+        report.verifiedDescription,
+        internalReport.verifiedDescription,
+      );
+      assert.notEqual(report.verifiedDescription, current.description);
+    },
+  );
+  await t.test(
+    "el trabajador no puede editar ni emitir el informe",
+    async () => {
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report",
+            "PUT",
+            { ...internalReport, version: reportVersion },
+            worker,
+          )
+        ).response.status,
+        403,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report/finalize",
+            "POST",
+            { version: reportVersion },
+            worker,
+          )
+        ).response.status,
+        403,
+      );
+    },
+  );
+  await t.test(
+    "controla versiones al actualizar y emitir borradores",
+    async () => {
+      const updated = await request(
+        "/events/" + accidentId + "/report",
+        "PUT",
+        {
+          ...internalReport,
+          version: reportVersion,
+          immediateMeasures: "Área señalizada; valoración solicitada.",
+        },
+        sst,
+      );
+      assert.equal(updated.response.status, 200);
+      assert.equal(updated.result.history.length, 2);
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report",
+            "PUT",
+            { ...internalReport, version: reportVersion },
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report/finalize",
+            "POST",
+            { version: reportVersion },
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      reportVersion = updated.result.version;
+    },
+  );
+  await t.test(
+    "emite el informe sin cerrar el evento y protege el documento emitido",
+    async () => {
+      const r = await request(
+        "/events/" + accidentId + "/report/finalize",
+        "POST",
+        { version: reportVersion },
+        sst,
+      );
+      assert.equal(r.response.status, 200);
+      assert.equal(r.result.status, "Emitido");
+      assert.ok(r.result.issuedAt);
+      assert.equal(r.result.issuedBy, "Daniel Rojas");
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report",
+            "PUT",
+            { ...internalReport, version: r.result.version },
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report/finalize",
+            "POST",
+            { version: r.result.version },
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      assert.equal(
+        (await request("/events", "GET", null, worker)).result.find(
+          (r) => r.id === accidentId,
+        ).status,
+        "En investigación",
+      );
+    },
+  );
+  await t.test(
+    "la consulta de informes respeta propietario y roles",
+    async () => {
+      const created = await request(
+        "/events",
+        "POST",
+        { ...event, type: "Accidente" },
+        sst,
+      );
+      await request(
+        "/events/" + created.result.id,
+        "PATCH",
+        {
+          action: "classify",
+          type: "Accidente",
+          severity: "Leve",
+          notes: "Prueba",
+        },
+        sst,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + created.result.id + "/report",
+            "POST",
+            internalReport,
+            sst,
+          )
+        ).response.status,
+        201,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + created.result.id + "/report",
+            "GET",
+            null,
+            worker,
+          )
+        ).response.status,
+        403,
+      );
+      const own = (await request("/accident-reports", "GET", null, worker))
+        .result;
+      assert.equal(own.length, 1);
+      assert.equal(own[0].eventId, accidentId);
+      assert.equal(
+        (await request("/accident-reports", "GET", null, coordinator)).result
+          .length,
+        2,
+      );
+    },
+  );
+
   await t.test("bloquea solicitudes de otro origen", async () =>
     assert.equal(
       (await request("/events", "POST", event, worker, "https://otro.example"))
