@@ -16,8 +16,8 @@ Autenticación, registro inicial, personas, evidencia, consulta e investigación
 
 ## Siguiente sprint
 
-- HU08: acciones correctivas y criterios de cierre.
-- Completar HU05: consulta de acciones.
+- HU08: completar carga de archivos como evidencia y notificaciones de acciones; la asignación, seguimiento y reglas de cierre ya están implementadas.
+- Completar HU05: seguimiento avanzado de acciones y notificaciones.
 - Completar HU07: testimonios específicos.
 - HU12: gestión administrativa de usuarios y auditoría.
 - Configurar y verificar Render y Atlas: issue #6.

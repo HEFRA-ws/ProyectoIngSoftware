@@ -20,7 +20,7 @@ Centralizar la declaración inicial, la evidencia y la investigación para facil
 
 ## Estado
 
-Versión 0.2: evento e informe separados, verificación de SST y gravedad de accidente. El informe es una propuesta interna del proyecto, no FURAT ni envío a ARL. Los incidentes mantienen investigación.
+Versión 0.3: evento e informe separados, verificación SST, acciones correctivas con seguimiento y cierre condicionado. El informe es una propuesta interna del proyecto, no FURAT ni envío a ARL. Los incidentes mantienen investigación.
 
 Las observaciones docentes se recibieron durante la revisión del prototipo, sin entrega formal previa. Su alcance y las decisiones propuestas por el equipo están registrados en Correcciones.
 

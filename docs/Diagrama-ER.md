@@ -1,6 +1,6 @@
 # Diagrama entidad-relación
 
-Modelo lógico de documentos MongoDB, versión 0.2. Las relaciones representan referencias y documentos embebidos; MongoDB no aplica claves foráneas SQL. Los identificadores de dominio son cadenas, además del `_id` interno de MongoDB.
+Modelo lógico de documentos MongoDB, versión 0.3. Las relaciones representan referencias y documentos embebidos; MongoDB no aplica claves foráneas SQL. Los identificadores de dominio son cadenas, además del `_id` interno de MongoDB.
 
 ```mermaid
 erDiagram
@@ -12,7 +12,9 @@ erDiagram
   EVENTO ||--o| INVESTIGACION : embebe
   EVENTO ||--o{ EVIDENCIA : referencia
   EVENTO ||--o| INFORME_ACCIDENTE : origina
+  EVENTO ||--o{ ACCION_CORRECTIVA : embebe
   EVENTO ||--|{ HISTORIAL_EVENTO : embebe
+  ACCION_CORRECTIVA ||--|{ HISTORIAL_ACCION : embebe
   INFORME_ACCIDENTE ||--|{ HISTORIAL_INFORME : embebe
   USUARIO {
     string id PK
@@ -33,6 +35,19 @@ erDiagram
     datetime date
     string status
     int version
+  }
+  ACCION_CORRECTIVA {
+    string id PK
+    string description
+    string responsible
+    date dueDate
+    string status
+    string evidence
+  }
+  HISTORIAL_ACCION {
+    datetime date
+    string actor
+    string text
   }
   PERSONA_INVOLUCRADA {
     string name

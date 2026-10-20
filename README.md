@@ -30,9 +30,10 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 - Consulta y búsqueda por código, título y área; filtros por tipo y estado.
 - Verificación de SST e investigación de causas. Accidentes clasificados como Leve, Grave o Mortal.
 - Informe interno del accidente independiente del evento, con campos estructurados, borrador, emisión e historial propio. Los incidentes conservan investigación.
+- Acciones correctivas con responsable, fecha límite, estado, historial y descripción de evidencia; SST puede cerrar el caso cuando todas estén completadas.
 - Historial de cambios y resumen básico calculado con los datos visibles para cada rol.
 
-Pendientes: acciones correctivas y cierre de casos, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El inicio con Google también queda fuera de esta versión.
+Pendientes: carga de archivos como evidencia de acciones, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El inicio con Google también queda fuera de esta versión.
 
 ## Ejecución local
 
