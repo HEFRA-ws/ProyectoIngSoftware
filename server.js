@@ -327,6 +327,8 @@ app.patch("/api/events/:id", async (req, res) => {
     b = req.body,
     now = new Date().toISOString(),
     change = {};
+  if (r.status === "Cerrado")
+    throw fail(409, "No puedes modificar un evento cerrado.");
   let text;
   if (b.action === "classify") {
     if (r.verification) throw fail(409, "El evento ya fue verificado.");
