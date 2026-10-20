@@ -382,6 +382,53 @@ app.patch("/api/events/:id", async (req, res) => {
     throw fail(409, "El evento cambió. Actualiza e intenta de nuevo.");
   res.json(result);
 });
+app.post("/api/events/:id/actions", async (req, res) => {
+  if (req.user.role !== "Profesional SST")
+    throw fail(403, "Solo SST puede asignar acciones correctivas.");
+  const event = await authorizedEvent(req);
+  if (!event.verification || !event.investigation)
+    throw fail(409, "Verifica e investiga el evento antes de asignar acciones.");
+  if (event.status === "Cerrado")
+    throw fail(409, "No puedes modificar un evento cerrado.");
+  const description = field(req.body.description, "Descripción", 2000);
+  const responsible = field(req.body.responsible, "Responsable");
+  const dueDate = req.body.dueDate;
+  const parsedDueDate =
+    typeof dueDate === "string" ? new Date(dueDate + "T00:00:00.000Z") : null;
+  if (
+    typeof dueDate !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) ||
+    !parsedDueDate ||
+    Number.isNaN(parsedDueDate.getTime()) ||
+    parsedDueDate.toISOString().slice(0, 10) !== dueDate
+  )
+    throw fail(400, "Indica una fecha límite válida.");
+  const now = new Date().toISOString();
+  const action = {
+    id: "AC-" + randomBytes(5).toString("hex").toUpperCase(),
+    description,
+    responsible,
+    dueDate,
+    status: "Pendiente",
+    evidence: "",
+    createdAt: now,
+    history: [{ date: now, actor: req.user.name, text: "Acción asignada" }],
+  };
+  const result = await events.findOneAndUpdate(
+    { id: event.id, version: event.version, status: { $ne: "Cerrado" } },
+    {
+      $push: {
+        correctiveActions: action,
+        history: { date: now, actor: req.user.name, text: `Acción correctiva asignada a ${responsible}` },
+      },
+      $inc: { version: 1 },
+    },
+    { returnDocument: "after", projection: { _id: 0 } },
+  );
+  if (!result)
+    throw fail(409, "El evento cambió. Actualiza e intenta de nuevo.");
+  res.status(201).json(action);
+});
 registerAccidentReports(app, { events, accidentReports, authorizedEvent });
 registerComplaints(app, { complaints, events, privileged });
 const formats = {
