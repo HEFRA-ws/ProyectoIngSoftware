@@ -172,7 +172,7 @@ function dashboard() {
     )}<p class="hint">Información calculada con los eventos visibles para tu rol.</p></div></section><section class="panel"><div class="panel-head"><h2>Actividad reciente</h2></div><div class="panel-body">${activity.length ? activity.map((a) => `<div class="activity"><span class="activity-dot"></span><div><p>${esc(a.text)}</p><small>${esc(a.id)} · ${esc(a.actor)}<br>${date(a.date)}</small></div></div>`).join("") : '<p class="hint">Aún no hay actividad.</p>'}</div></section></div></div><div class="footer-note"><span>Vigía SST · Gestión de accidentes e incidentes laborales</span><span>Prototipo académico · Datos de demostración</span></div>`;
 }
 function eventsPage() {
-  return `${heading("Eventos", "Registra, consulta y sigue el avance de los eventos.", newButton())}<section class="panel"><div class="panel-head"><div><h2>Registro de eventos</h2><p>${events.length} eventos disponibles para tu rol</p></div></div><div class="filters"><input class="form-control" id="search" type="search" placeholder="Buscar por código, título o área" aria-label="Buscar eventos" value="${esc(filter.search)}"><select class="form-select" id="status-filter" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option ${filter.status === "Reportado" ? "selected" : ""}>Reportado</option><option ${filter.status === "En investigación" ? "selected" : ""}>En investigación</option></select><select class="form-select" id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos los tipos</option><option ${filter.type === "Accidente" ? "selected" : ""}>Accidente</option><option ${filter.type === "Incidente" ? "selected" : ""}>Incidente</option></select></div><div id="report-results">${table(filtered())}</div></section>`;
+  return `${heading("Eventos", "Registra, consulta y sigue el avance de los eventos.", newButton())}<section class="panel"><div class="panel-head"><div><h2>Registro de eventos</h2><p>${events.length} eventos disponibles para tu rol</p></div></div><div class="filters"><input class="form-control" id="search" type="search" placeholder="Buscar por código, título o área" aria-label="Buscar eventos" value="${esc(filter.search)}"><select class="form-select" id="status-filter" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option ${filter.status === "Reportado" ? "selected" : ""}>Reportado</option><option ${filter.status === "En investigación" ? "selected" : ""}>En investigación</option><option ${filter.status === "Cerrado" ? "selected" : ""}>Cerrado</option></select><select class="form-select" id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos los tipos</option><option ${filter.type === "Accidente" ? "selected" : ""}>Accidente</option><option ${filter.type === "Incidente" ? "selected" : ""}>Incidente</option></select></div><div id="report-results">${table(filtered())}</div></section>`;
 }
 function filtered() {
   return events.filter(
@@ -183,6 +183,21 @@ function filtered() {
         .toLowerCase()
         .includes(filter.search.toLowerCase()),
   );
+}
+function correctiveActionsSection(event) {
+  const actions = event.correctiveActions || [];
+  const canManage = professional() && event.status !== "Cerrado";
+  const list = actions.length
+    ? actions.map((action) => `<article class="status-note mb-3"><div class="d-flex justify-content-between gap-3"><strong>${esc(action.description)}</strong><span class="badge-state">${esc(action.status)}</span></div><p class="mb-1 mt-2">Responsable: ${esc(action.responsible)} · Fecha límite: ${esc(action.dueDate)}</p>${action.evidence ? `<p class="mb-1">Evidencia: ${esc(action.evidence)}</p>` : ""}<ol class="timeline mt-3">${(action.history || []).map((entry) => `<li><p>${esc(entry.text)}</p><small>${esc(entry.actor)} · ${date(entry.date)}</small></li>`).join("")}</ol>${canManage ? `<form class="action-update-form detail-form mt-3" data-action-id="${esc(action.id)}"><label class="form-label">Estado de la acción<select class="form-select" name="status"><option ${action.status === "Pendiente" ? "selected" : ""}>Pendiente</option><option ${action.status === "En curso" ? "selected" : ""}>En curso</option><option ${action.status === "Completada" ? "selected" : ""}>Completada</option></select></label><label class="form-label">Evidencia o referencia de cumplimiento<textarea class="form-control" name="evidence" rows="2" maxlength="2000" ${action.status === "Completada" ? "required" : ""}>${esc(action.evidence || "")}</textarea></label><div class="error" role="alert"></div><button class="btn btn-light btn-sm" type="submit">Actualizar acción</button></form>` : ""}</article>`).join("")
+    : '<p class="hint">Aún no se han asignado acciones correctivas.</p>';
+  const create = canManage && event.verification && event.investigation
+    ? `<form id="corrective-action-form" class="detail-form mt-4"><h3>Asignar acción</h3><label class="form-label">Medida correctiva<textarea class="form-control" name="description" rows="2" maxlength="2000" required></textarea></label><label class="form-label">Responsable<input class="form-control" name="responsible" maxlength="200" required></label><label class="form-label">Fecha límite<input class="form-control" name="dueDate" type="date" required></label><div class="error" role="alert"></div><button class="btn btn-primary" type="submit">Asignar acción</button></form>`
+    : "";
+  const closable = actions.length > 0 && actions.every((action) => action.status === "Completada" && action.evidence);
+  const close = canManage ? closable
+    ? `<div class="divider"></div><button class="btn btn-primary" data-command="close-event" data-event-id="${esc(event.id)}">Cerrar evento</button>`
+    : '<p class="hint">Para cerrar el caso, SST debe registrar acciones y completar cada una con evidencia.</p>' : "";
+  return `<section class="panel form-panel"><h2>Acciones correctivas</h2><p class="hint">Las acciones se asignan después de la investigación y mantienen su propio historial.</p>${list}${create}${close}${event.status === "Cerrado" ? `<p class="status-note mt-3">Caso cerrado por ${esc(event.closedBy)} · ${date(event.closedAt)}</p>` : ""}</section>`;
 }
 function input(name, label, type = "text", extra = "") {
   return `<div><label class="form-label" for="${name}">${label}</label><input class="form-control" id="${name}" name="${name}" type="${type}" required maxlength="200" ${extra}></div>`;
@@ -208,7 +223,7 @@ function detail() {
     .map(([key, value]) => `<div><dt>${key}</dt><dd>${esc(value)}</dd></div>`)
     .join(
       "",
-    )}</dl><h3>Actividad inicial</h3><p class="prose">${esc(r.activityDescription || "No registrada en la versión anterior.")}</p><h3>Descripción inicial</h3><p class="prose">${esc(r.description)}</p><div class="detail-section"><h3>Personas involucradas</h3>${r.people.length ? r.people.map((p) => `<div class="status-note mb-2"><strong>${esc(p.name)}</strong> · ${esc(p.kind)}<br>Identificación: ${esc(p.document)}<br>Contacto: ${esc(p.contact)}</div>`).join("") : '<p class="hint">No se registraron personas involucradas.</p>'}</div></section><section class="panel form-panel"><h2>Evidencia del evento</h2><p class="hint">PNG, JPG o PDF. Hasta 2 MB por archivo, máximo cinco archivos.</p><ul class="file-list">${files.map((f) => `<li><a href="/api/events/${esc(r.id)}/evidence/${esc(f.id)}">${esc(f.name)}</a><span class="muted">${Math.ceil(f.size / 1024)} KB</span></li>`).join("") || '<li class="muted">No hay archivos adjuntos.</li>'}</ul>${user.role !== "Coordinador" ? `<form id="evidence-form"><label for="evidence-file" class="form-label">Seleccionar evidencia</label><input type="file" id="evidence-file" class="form-control" accept="image/png,image/jpeg,application/pdf" required><div class="error mt-2" id="evidence-error" role="alert"></div><button class="btn btn-light btn-sm mt-3" type="submit">${icon("upload")} Adjuntar archivo</button></form>` : ""}</section>${r.verification ? `<section class="panel form-panel"><h2>Verificación SST</h2><p><strong>${esc(r.verification.type)}${r.verification.severity ? " · " + esc(r.verification.severity) : ""}</strong></p><p class="hint">${esc(r.verification.actor)} · ${date(r.verification.date)}</p><p class="prose">${esc(r.verification.notes)}</p></section>` : ""}${professional() ? investigationForm(r) : r.investigation ? investigationRead(r) : ""}${accidentReportSection(r)}</div><aside><section class="panel form-panel"><h2>Seguimiento del caso</h2><p class="hint mb-4">Historial de cambios y responsables.</p><ol class="timeline">${r.history.map((h) => `<li><p>${esc(h.text)}</p><small>${esc(h.actor)}<br>${date(h.date)}</small></li>`).join("")}</ol></section><div class="status-note">${!r.verification ? "El evento está pendiente de verificación por un profesional SST." : "El evento está en investigación. El cierre y las acciones correctivas se implementarán en el siguiente sprint."}</div></aside></div>`;
+    )}</dl><h3>Actividad inicial</h3><p class="prose">${esc(r.activityDescription || "No registrada en la versión anterior.")}</p><h3>Descripción inicial</h3><p class="prose">${esc(r.description)}</p><div class="detail-section"><h3>Personas involucradas</h3>${r.people.length ? r.people.map((p) => `<div class="status-note mb-2"><strong>${esc(p.name)}</strong> · ${esc(p.kind)}<br>Identificación: ${esc(p.document)}<br>Contacto: ${esc(p.contact)}</div>`).join("") : '<p class="hint">No se registraron personas involucradas.</p>'}</div></section><section class="panel form-panel"><h2>Evidencia del evento</h2><p class="hint">PNG, JPG o PDF. Hasta 2 MB por archivo, máximo cinco archivos.</p><ul class="file-list">${files.map((f) => `<li><a href="/api/events/${esc(r.id)}/evidence/${esc(f.id)}">${esc(f.name)}</a><span class="muted">${Math.ceil(f.size / 1024)} KB</span></li>`).join("") || '<li class="muted">No hay archivos adjuntos.</li>'}</ul>${user.role !== "Coordinador" ? `<form id="evidence-form"><label for="evidence-file" class="form-label">Seleccionar evidencia</label><input type="file" id="evidence-file" class="form-control" accept="image/png,image/jpeg,application/pdf" required><div class="error mt-2" id="evidence-error" role="alert"></div><button class="btn btn-light btn-sm mt-3" type="submit">${icon("upload")} Adjuntar archivo</button></form>` : ""}</section>${r.verification ? `<section class="panel form-panel"><h2>Verificación SST</h2><p><strong>${esc(r.verification.type)}${r.verification.severity ? " · " + esc(r.verification.severity) : ""}</strong></p><p class="hint">${esc(r.verification.actor)} · ${date(r.verification.date)}</p><p class="prose">${esc(r.verification.notes)}</p></section>` : ""}${professional() ? investigationForm(r) : r.investigation ? investigationRead(r) : ""}${correctiveActionsSection(r)}${accidentReportSection(r)}</div><aside><section class="panel form-panel"><h2>Seguimiento del caso</h2><p class="hint mb-4">Historial de cambios y responsables.</p><ol class="timeline">${r.history.map((h) => `<li><p>${esc(h.text)}</p><small>${esc(h.actor)}<br>${date(h.date)}</small></li>`).join("")}</ol></section><div class="status-note">${r.status === "Cerrado" ? "El caso fue cerrado por SST." : !r.verification ? "El evento está pendiente de verificación por un profesional SST." : "El evento está en investigación."}</div></aside></div>`;
 }
 function investigationRead(r) {
   return `<section class="panel form-panel"><h2>Investigación</h2>${[
@@ -368,8 +383,15 @@ async function refresh() {
 document.addEventListener("click", async (e) => {
   const nav = e.target.closest("[data-nav]"),
     report = e.target.closest("[data-report]"),
-    action = e.target.closest("[data-action]");
+    action = e.target.closest("[data-action]"),
+    command = e.target.closest("[data-command]");
   try {
+    if (command?.dataset.command === "close-event") {
+      await api("/events/" + command.dataset.eventId + "/close", "POST", {});
+      await refresh();
+      shell();
+      toast("Evento cerrado correctamente.");
+    }
     if (nav) await navigate(nav.dataset.nav);
     if (report) await navigate("detail", report.dataset.report);
     if (action?.dataset.action === "logout") {
@@ -393,6 +415,9 @@ document.addEventListener("input", (e) => {
   }
 });
 document.addEventListener("change", (e) => {
+  if (e.target.name === "status" && e.target.closest(".action-update-form"))
+    e.target.form.querySelector('[name="evidence"]').required =
+      e.target.value === "Completada";
   if (e.target.id === "classification-type") {
     const accident = e.target.value === "Accidente";
     $("#severity-field").hidden = !accident;
@@ -479,6 +504,23 @@ document.addEventListener("submit", async (e) => {
       complaints = await api("/complaints");
       shell();
       toast("Respuesta registrada.");
+    }
+    if (form.id === "corrective-action-form") {
+      await api("/events/" + selectedId + "/actions", "POST", values);
+      await refresh();
+      shell();
+      toast("Acción correctiva asignada.");
+    }
+    if (form.matches(".action-update-form")) {
+      await api(
+        "/events/" + selectedId + "/actions/" + form.dataset.actionId,
+        "PATCH",
+        values,
+      );
+      await refresh();
+      shell();
+      toast("Acción correctiva actualizada.");
+    }
     }
     if (form.id === "evidence-form") {
       const file = $("#evidence-file").files[0];
