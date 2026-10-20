@@ -181,6 +181,27 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
         403,
       );
   });
+  await t.test(
+    "impide al administrador verificar e investigar eventos",
+    async () => {
+      for (const body of [
+        { action: "classify", type: "Incidente", notes: "Prueba" },
+        { action: "investigate", immediate: "A", basic: "B", conclusion: "C" },
+      ])
+        assert.equal(
+          (await request("/events/" + id, "PATCH", body, admin)).response
+            .status,
+          403,
+        );
+    },
+  );
+  await t.test("impide al administrador elaborar informes", async () =>
+    assert.equal(
+      (await request("/events/" + id + "/report", "POST", {}, admin)).response
+        .status,
+      403,
+    ),
+  );
   await t.test("requiere clasificar antes de investigar", async () =>
     assert.equal(
       (

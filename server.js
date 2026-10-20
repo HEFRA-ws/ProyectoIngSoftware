@@ -315,7 +315,7 @@ async function authorizedEvent(req) {
   return r;
 }
 app.patch("/api/events/:id", async (req, res) => {
-  if (!["Profesional SST", "Administrador"].includes(req.user.role))
+  if (req.user.role !== "Profesional SST")
     throw fail(403, "Esta acción requiere un profesional SST.");
   const r = await authorizedEvent(req),
     b = req.body,

@@ -48,8 +48,7 @@ const date = (v) =>
   }).format(new Date(v));
 const badge = (r) =>
   `<span class="badge-state ${r.status === "En investigación" ? "investigation" : ""}">${esc(r.status)}</span>`;
-const professional = () =>
-  ["Profesional SST", "Administrador"].includes(user?.role);
+const professional = () => user?.role === "Profesional SST";
 async function api(path, method = "GET", data) {
   const res = await fetch("/api" + path, {
     method,
