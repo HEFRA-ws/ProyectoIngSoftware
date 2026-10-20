@@ -16,6 +16,18 @@ Escala: probabilidad e impacto de 1 a 3. Exposición = probabilidad por impacto;
 | R08 | Diferencias entre documentos y código | 2 | 2 | 4 | Actualizar arquitectura, estados y alcance con cada cambio | Documentación |
 | R09 | El equipo no comprende el código generado con asistencia | 2 | 3 | 6 | Revisión, demostración individual y explicación del flujo | Todo el equipo |
 | R10 | Servicio gratuito lento o suspendido | 2 | 2 | 4 | Ensayar antes de presentar y disponer de ejecución local | Despliegue |
+| R11 | El rol Administrador tiene permisos de Profesional SST (clasificar, investigar y elaborar informes) | 3 | 2 | 6 | Restringir clasificación, investigación e informes al rol SST y añadir pruebas negativas para el administrador | Backend / QA |
+| R12 | Trabajo concentrado en un solo integrante | 3 | 3 | 9 | Asignar issues por integrante en GitHub Projects y revisar avances en cada sprint | Coordinación |
+| R13 | Fallo al ejecutar el proyecto en Windows (`pnpm` no reconocido o `corepack enable` sin permisos) | 3 | 2 | 6 | Documentar `corepack pnpm start` y verificar la ejecución en el equipo de cada integrante | Despliegue / Documentación |
+| R14 | Modificar el repositorio después de la fecha de entrega, lo que puede anular la entrega | 2 | 3 | 6 | Fijar una hora límite interna previa y no hacer push después de la entrega | Todo el equipo |
+| R15 | Pérdida de la carpeta local del proyecto (clon en carpetas temporales) | 2 | 2 | 4 | Clonar en una carpeta de trabajo estable y subir los cambios con frecuencia | Todo el equipo |
+
+## Riesgos materializados
+
+| Fecha | Riesgo | Qué ocurrió | Acción |
+| --- | --- | --- | --- |
+| 2026-10-15 | R13 | Al ejecutar el prototipo en Windows, PowerShell no reconoció `pnpm` | Se ejecutó con `corepack pnpm start` |
+| 2026-10-20 | R11 | En la revisión de permisos se encontró que el administrador puede clasificar, investigar y elaborar informes | Pendiente de corrección en el backend |
 
 ## Seguimiento
 
