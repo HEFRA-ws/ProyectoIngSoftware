@@ -1,6 +1,6 @@
 # Historias de usuario
 
-Versión 0.2. Se conservan los identificadores HU01-HU12 del primer avance y se añade HU13 para el informe interno independiente. Las historias completas están aquí y en la wiki del nuevo repositorio.
+Versión 0.2. Se conservan los identificadores HU01-HU12 del primer avance y se añaden HU13 para el informe interno independiente y HU14 para quejas y reclamos. Las historias completas están aquí y en la wiki del nuevo repositorio.
 
 | ID | Historia | Prioridad | Estado |
 | --- | --- | --- | --- |
@@ -17,6 +17,7 @@ Versión 0.2. Se conservan los identificadores HU01-HU12 del primer avance y se 
 | [HU11](HU11.md) | Exportar un informe | Media | Pendiente |
 | [HU12](HU12.md) | Gestionar usuarios y roles | Alta | Pendiente |
 | [HU13](HU13.md) | Elaborar y emitir el informe interno del accidente | Alta | Implementada |
+| [HU14](HU14.md) | Radicar y responder quejas y reclamos | Media | Implementada |
 
 ## Trazabilidad de la corrección
 

@@ -66,6 +66,8 @@ Los borradores también son consultables por el propietario del evento; la escri
 | GET | /api/accident-reports | Informes autorizados |
 | GET / POST / PUT | /api/events/:id/report | Consultar, crear o actualizar borrador |
 | POST | /api/events/:id/report/finalize | Emitir la versión guardada |
+| GET / POST | /api/complaints | Consultar o radicar quejas y reclamos |
+| PATCH | /api/complaints/:id | Responder una queja o un reclamo (SST o Administrador) |
 
 Las rutas /api/login, /api/me, /api/logout y /api/health se mantienen. Las rutas antiguas /api/reports se sustituyen por /api/events. Debe actualizarse el navegador junto al servidor.
 
