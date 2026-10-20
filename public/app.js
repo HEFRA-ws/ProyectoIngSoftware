@@ -23,6 +23,7 @@ const paths = {
   calendar: "M3 5h18v16H3zM7 3v4m10-4v4M3 10h18",
   upload: "M12 16V3m-4 4 4-4 4 4M4 15v6h16v-6",
   x: "m6 6 12 12M6 18 18 6",
+  message: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   users:
     "M16 21v-4a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v4M12 6a4 4 0 1 1-8 0 4 4 0 0 1 8 0M20 21v-4a4 4 0 0 0-3-3.9M16 2a4 4 0 0 1 0 8",
 };
@@ -33,6 +34,7 @@ const brand = () =>
 let user,
   events = [],
   accidentReports = [],
+  complaints = [],
   accidentReport = null,
   reportOptions = {},
   page = "dashboard",
@@ -77,6 +79,7 @@ function shell() {
     dashboard: "Resumen general",
     events: "Eventos",
     reports: "Informes SST",
+    complaints: "Quejas y reclamos",
     new: "Registrar evento",
     detail: "Detalle del evento",
     about: "Acerca del prototipo",
@@ -86,6 +89,7 @@ function shell() {
       ["dashboard", "grid", "Resumen general"],
       ["events", "file", "Eventos"],
       ["reports", "file", "Informes SST"],
+      ["complaints", "message", "Quejas y reclamos"],
       ["new", "plus", "Registrar evento"],
       ["about", "info", "Acerca del prototipo"],
     ]
@@ -306,6 +310,22 @@ function accidentReportsPage() {
   return `${heading("Informes SST", "Documentos internos asociados a accidentes verificados.")}<section class="panel"><div class="panel-head"><div><h2>Informes de accidentes</h2><p>El registro del evento y el informe son elementos distintos.</p></div></div>${accidentReports.length ? `<div class="table-wrap"><table class="report-table"><thead><tr><th>Informe</th><th>Accidente</th><th>Gravedad</th><th>Estado del informe</th><th>Acción</th></tr></thead><tbody>${accidentReports.map((r) => `<tr><td>${esc(r.id)}</td><td>${esc(r.eventTitle)}<span class="report-code">${esc(r.eventId)}</span></td><td>${esc(r.severity)}</td><td><span class="badge-state ${r.status === "Emitido" ? "investigation" : ""}">${esc(r.status)}</span></td><td><button class="text-button" data-report="${esc(r.eventId)}">Ver accidente ${icon("arrow")}</button></td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">Todavía no hay informes. SST puede elaborar uno desde el detalle de un accidente verificado.</div>`}</section>`;
 }
 
+const handlesComplaints = () =>
+  ["Profesional SST", "Administrador"].includes(user?.role);
+function complaintItem(c) {
+  const overdue = c.status === "Radicada" && Date.parse(c.dueDate) < Date.now();
+  return `<li class="complaint"><div class="complaint-head"><div><strong>${esc(c.subject)}</strong><span class="report-code">${esc(c.id)} · ${esc(c.type)}${c.eventId ? " · Evento " + esc(c.eventId) : ""}</span></div><span class="badge-state ${c.status === "Respondida" ? "done" : ""}">${esc(c.status)}</span></div><p class="prose">${esc(c.description)}</p><p class="hint">${esc(c.author)} · ${date(c.createdAt)}${c.status === "Radicada" ? ` · <span class="${overdue ? "overdue" : ""}">Responder antes del ${date(c.dueDate)}${overdue ? " (vencida)" : ""}</span>` : ""}</p>${
+    c.response
+      ? `<div class="status-note"><strong>Respuesta</strong><br>${esc(c.response.text)}<br><small>${esc(c.response.actor)} · ${date(c.response.date)}</small></div>`
+      : handlesComplaints()
+        ? `<form class="detail-form" data-complaint="${esc(c.id)}"><label class="form-label" for="response-${esc(c.id)}">Respuesta</label><textarea class="form-control" id="response-${esc(c.id)}" name="response" rows="2" required maxlength="3000"></textarea><div class="error" role="alert"></div><div><button class="btn btn-light btn-sm" type="submit">${icon("check")} Responder</button></div></form>`
+        : ""
+  }</li>`;
+}
+function complaintsPage() {
+  const pending = complaints.filter((c) => c.status === "Radicada").length;
+  return `${heading("Quejas y reclamos", "Expresa tu inconformidad con la gestión de un caso o con la plataforma.")}<section class="panel form-panel"><h2>Radicar queja o reclamo</h2><p class="hint mb-4">Queja: inconformidad con la atención o el trato recibido. Reclamo: solicitud de corregir algo que no funcionó como se esperaba. Plazo interno de respuesta: 15 días hábiles.</p><form id="complaint-form" class="detail-form"><div class="form-grid"><div><label class="form-label" for="complaint-type">Tipo</label><select class="form-select" id="complaint-type" name="type" required><option value="">Selecciona una opción</option><option>Queja</option><option>Reclamo</option></select></div><div><label class="form-label" for="complaint-event">Evento relacionado (opcional)</label><select class="form-select" id="complaint-event" name="eventId"><option value="">Ninguno</option>${events.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(r.title)}</option>`).join("")}</select></div><div class="full"><label class="form-label" for="complaint-subject">Asunto</label><input class="form-control" id="complaint-subject" name="subject" required maxlength="200"></div><div class="full"><label class="form-label" for="complaint-description">Descripción</label><textarea class="form-control" id="complaint-description" name="description" rows="3" required maxlength="3000"></textarea></div></div><div class="error" role="alert"></div><div><button class="btn btn-primary" type="submit">${icon("message")} Radicar</button></div></form></section><section class="panel form-panel"><h2>${handlesComplaints() ? "Quejas y reclamos recibidos" : "Mis quejas y reclamos"}</h2><p class="hint">${complaints.length} registradas · ${pending} pendientes de respuesta</p>${complaints.length ? `<ul class="complaint-list">${complaints.map(complaintItem).join("")}</ul>` : '<div class="empty">Aún no hay quejas ni reclamos.</div>'}</section>`;
+}
 function about() {
   return `${heading("Acerca del prototipo", "Una base funcional para recibir retroalimentación del proyecto.")}<section class="panel form-panel"><div class="eyebrow mb-3">Vigía SST · Avance de curso</div><h2>Del evento a la investigación</h2><p class="prose">Aplicación web para centralizar accidentes e incidentes laborales, con acceso por roles y trazabilidad de los cambios.</p><div class="divider"></div><h3>Disponible en esta versión</h3><ul class="about-list"><li>Inicio de sesión con correo y contraseña y sesiones protegidas.</li><li>Registro de accidentes e incidentes, afectados y testigos.</li><li>Adjuntos PNG, JPG y PDF, con validación de formato y tamaño.</li><li>Consulta, búsqueda y filtros de eventos, con acceso según el rol.</li><li>Verificación, gravedad e investigación por el profesional SST.</li><li>Informe interno de accidente con borrador y emisión.</li><li>Historial del caso e indicadores básicos a partir de los datos registrados.</li></ul><h3 class="mt-4">Siguiente sprint</h3><p class="prose">Acciones correctivas y cierre, notificaciones, tablero estadístico avanzado, exportación del informe y administración de usuarios.</p><div class="divider"></div><h3>Tecnologías</h3><p class="prose">HTML, CSS, JavaScript y Bootstrap 5 para la interfaz. Node.js y Express para la API REST. MongoDB para la persistencia. Despliegue preparado para Render y MongoDB Atlas.</p><div class="status-note mt-4">El porcentaje de avance se valida contra los criterios de aceptación. Este prototipo no acredita cumplimiento normativo y debe demostrarse con datos ficticios.</div></section>`;
 }
@@ -315,6 +335,7 @@ function renderContent() {
     dashboard,
     events: eventsPage,
     reports: accidentReportsPage,
+    complaints: complaintsPage,
     new: newEvent,
     detail,
     about,
@@ -337,10 +358,11 @@ async function navigate(next, id) {
   window.scrollTo(0, 0);
 }
 async function refresh() {
-  [events, accidentReports, reportOptions] = await Promise.all([
+  [events, accidentReports, reportOptions, complaints] = await Promise.all([
     api("/events"),
     api("/accident-reports"),
     api("/report-options"),
+    api("/complaints"),
   ]);
 }
 document.addEventListener("click", async (e) => {
@@ -445,6 +467,18 @@ document.addEventListener("submit", async (e) => {
       await refresh();
       shell();
       toast("Información guardada correctamente.");
+    }
+    if (form.id === "complaint-form") {
+      const result = await api("/complaints", "POST", values);
+      complaints = await api("/complaints");
+      shell();
+      toast("Radicada con el código " + result.id + ".");
+    }
+    if (form.dataset.complaint) {
+      await api("/complaints/" + form.dataset.complaint, "PATCH", values);
+      complaints = await api("/complaints");
+      shell();
+      toast("Respuesta registrada.");
     }
     if (form.id === "evidence-form") {
       const file = $("#evidence-file").files[0];

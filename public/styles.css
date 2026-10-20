@@ -874,6 +874,32 @@ h3 {
 .about-list li {
   margin-bottom: 10px;
 }
+.badge-state.done {
+  background: #e7f3ea;
+  color: #3f7a4f;
+}
+.complaint-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+.complaint {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.complaint-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.overdue {
+  color: #c0392b;
+  font-weight: 600;
+}
 .status-note {
   background: #eff5ed;
   color: #56714e;
