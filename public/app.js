@@ -521,7 +521,6 @@ document.addEventListener("submit", async (e) => {
       shell();
       toast("Acción correctiva actualizada.");
     }
-    }
     if (form.id === "evidence-form") {
       const file = $("#evidence-file").files[0];
       if (!file || file.size > 2097152)
