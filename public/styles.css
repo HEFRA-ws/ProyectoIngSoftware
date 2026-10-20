@@ -628,7 +628,10 @@ h3 {
   font-size: 11px;
 }
 .badge-type.accident {
-  color: #ae6c51;
+  color: #c0392b;
+}
+.badge-type.incident {
+  color: #d35400;
 }
 .panel-body {
   padding: 0 22px 22px;

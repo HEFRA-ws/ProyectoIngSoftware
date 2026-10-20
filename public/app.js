@@ -114,7 +114,7 @@ function rows(data) {
   return data
     .map(
       (r) =>
-        `<tr><td><button class="report-title" data-report="${esc(r.id)}">${esc(r.title)}</button><span class="report-code">${esc(r.id)}</span></td><td><span class="badge-type ${r.type === "Accidente" ? "accident" : ""}">${esc(r.type)}</span></td><td>${esc(r.area)}</td><td>${badge(r)}</td><td><button class="text-button" data-report="${esc(r.id)}" aria-label="Ver ${esc(r.id)}">Ver ${icon("arrow")}</button></td></tr>`,
+        `<tr><td><button class="report-title" data-report="${esc(r.id)}">${esc(r.title)}</button><span class="report-code">${esc(r.id)}</span></td><td><span class="badge-type ${r.type === "Accidente" ? "accident" : "incident"}">${esc(r.type)}</span></td><td>${esc(r.area)}</td><td>${badge(r)}</td><td><button class="text-button" data-report="${esc(r.id)}" aria-label="Ver ${esc(r.id)}">Ver ${icon("arrow")}</button></td></tr>`,
     )
     .join("");
 }
