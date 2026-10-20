@@ -285,6 +285,7 @@ h3 {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 .sidebar .brand {
   padding: 0 8px;
@@ -959,6 +960,14 @@ h3 {
   .report-table td {
     padding-top: 21px;
     padding-bottom: 21px;
+  }
+}
+@media (max-height: 760px) and (min-width: 801px) {
+  .sidebar .brand {
+    margin-bottom: 28px;
+  }
+  .sidebar-note {
+    display: none;
   }
 }
 @media (max-width: 1200px) {
