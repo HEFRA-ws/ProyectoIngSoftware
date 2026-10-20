@@ -27,7 +27,7 @@ Escala: probabilidad e impacto de 1 a 3. Exposición = probabilidad por impacto;
 | Fecha | Riesgo | Qué ocurrió | Acción |
 | --- | --- | --- | --- |
 | 2026-10-15 | R13 | Al ejecutar el prototipo en Windows, PowerShell no reconoció `pnpm` | Se ejecutó con `corepack pnpm start` |
-| 2026-10-20 | R11 | En la revisión de permisos se encontró que el administrador puede clasificar, investigar y elaborar informes | Pendiente de corrección en el backend |
+| 2026-10-20 | R11 | En la revisión de permisos se encontró que el administrador puede clasificar, investigar y elaborar informes | Corregido en el commit b74b8a5: solo el profesional SST verifica, investiga y elabora informes; pruebas de rechazo 403 para el administrador |
 
 ## Seguimiento
 
