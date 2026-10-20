@@ -95,7 +95,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       await legacy.dropDatabase();
     },
   );
-  let worker, sst, admin, coordinator, id, privateId, fileId;
+  let worker, sst, admin, coordinator, id, privateId, fileId, complaintId;
   await t.test("bloquea consultas sin sesión", async () =>
     assert.equal((await request("/events")).response.status, 401),
   );
@@ -746,6 +746,78 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     },
   );
 
+  await t.test("radica quejas y reclamos con plazo de respuesta", async () => {
+    const queja = {
+      type: "Queja",
+      subject: "Demora en la revisión",
+      description: "El evento lleva varios días sin verificación.",
+      eventId: id,
+    };
+    for (const body of [
+      { ...queja, type: "Petición" },
+      { ...queja, subject: "" },
+      { ...queja, eventId: "SST-NO-EXISTE" },
+    ])
+      assert.equal(
+        (await request("/complaints", "POST", body, worker)).response.status,
+        400,
+      );
+    const r = await request("/complaints", "POST", queja, worker);
+    assert.equal(r.response.status, 201);
+    assert.match(r.result.id, /^QR-/);
+    assert.equal(r.result.status, "Radicada");
+    assert.equal(r.result.eventId, id);
+    assert.ok(Date.parse(r.result.dueDate) > Date.parse(r.result.createdAt));
+    complaintId = r.result.id;
+  });
+  await t.test(
+    "muestra cada queja solo a su autor y a quien responde",
+    async () => {
+      const reclamo = {
+        type: "Reclamo",
+        subject: "Consulta de mis eventos",
+        description: "No encuentro la evidencia que adjunté.",
+      };
+      assert.equal(
+        (await request("/complaints", "POST", reclamo, coordinator)).response
+          .status,
+        201,
+      );
+      const own = (await request("/complaints", "GET", null, worker)).result;
+      assert.deepEqual(
+        own.map((c) => c.id),
+        [complaintId],
+      );
+      for (const cookie of [sst, admin])
+        assert.equal(
+          (await request("/complaints", "GET", null, cookie)).result.length,
+          2,
+        );
+    },
+  );
+  await t.test("solo SST o el administrador responden una vez", async () => {
+    const answer = { response: "Se priorizó la verificación del evento." };
+    for (const cookie of [worker, coordinator])
+      assert.equal(
+        (await request("/complaints/" + complaintId, "PATCH", answer, cookie))
+          .response.status,
+        403,
+      );
+    const r = await request("/complaints/" + complaintId, "PATCH", answer, sst);
+    assert.equal(r.response.status, 200);
+    assert.equal(r.result.status, "Respondida");
+    assert.equal(r.result.response.actor, "Daniel Rojas");
+    assert.equal(
+      (await request("/complaints/" + complaintId, "PATCH", answer, admin))
+        .response.status,
+      409,
+    );
+    assert.equal(
+      (await request("/complaints/QR-NOEXISTE", "PATCH", answer, sst)).response
+        .status,
+      404,
+    );
+  });
   await t.test("bloquea solicitudes de otro origen", async () =>
     assert.equal(
       (await request("/events", "POST", event, worker, "https://otro.example"))

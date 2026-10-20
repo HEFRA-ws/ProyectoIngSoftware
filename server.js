@@ -1,6 +1,7 @@
 import express from "express";
 import { migrateLegacyEvents } from "./lib/migrations.js";
 import { registerAccidentReports } from "./lib/accident-reports.js";
+import { registerComplaints } from "./lib/complaints.js";
 import { MongoClient } from "mongodb";
 import {
   randomBytes,
@@ -40,6 +41,7 @@ const users = db.collection("users"),
   events = db.collection("events"),
   accidentReports = db.collection("accidentReports"),
   attempts = db.collection("attempts"),
+  complaints = db.collection("complaints"),
   evidence = db.collection("evidence");
 await Promise.all([
   users.createIndex({ email: 1 }, { unique: true }),
@@ -49,6 +51,8 @@ await Promise.all([
   accidentReports.createIndex({ eventId: 1 }, { unique: true }),
   attempts.createIndex({ expires: 1 }, { expireAfterSeconds: 0 }),
   evidence.createIndex({ eventId: 1 }),
+  complaints.createIndex({ id: 1 }, { unique: true }),
+  complaints.createIndex({ owner: 1, createdAt: -1 }),
 ]);
 const hashToken = (t) => createHash("sha256").update(t).digest("hex");
 async function passwordHash(p) {
@@ -377,6 +381,7 @@ app.patch("/api/events/:id", async (req, res) => {
   res.json(result);
 });
 registerAccidentReports(app, { events, accidentReports, authorizedEvent });
+registerComplaints(app, { complaints, events, privileged });
 const formats = {
   "image/png": {
     extension: "png",
