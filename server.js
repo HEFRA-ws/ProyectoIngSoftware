@@ -429,6 +429,78 @@ app.post("/api/events/:id/actions", async (req, res) => {
     throw fail(409, "El evento cambió. Actualiza e intenta de nuevo.");
   res.status(201).json(action);
 });
+app.patch("/api/events/:id/actions/:actionId", async (req, res) => {
+  if (req.user.role !== "Profesional SST")
+    throw fail(403, "Solo SST puede actualizar acciones correctivas.");
+  const event = await authorizedEvent(req);
+  if (event.status === "Cerrado")
+    throw fail(409, "No puedes modificar acciones de un evento cerrado.");
+  const action = (event.correctiveActions || []).find(
+    (item) => item.id === req.params.actionId,
+  );
+  if (!action) throw fail(404, "Acción correctiva no encontrada.");
+  if (!["Pendiente", "En curso", "Completada"].includes(req.body.status))
+    throw fail(400, "Selecciona un estado válido para la acción.");
+  const evidence =
+    req.body.status === "Completada"
+      ? field(req.body.evidence, "Evidencia de cumplimiento", 2000)
+      : typeof req.body.evidence === "string"
+        ? req.body.evidence.trim().slice(0, 2000)
+        : action.evidence;
+  const now = new Date().toISOString();
+  const text =
+    req.body.status === "Completada"
+      ? "Acción completada con evidencia registrada"
+      : `Acción actualizada a ${req.body.status}`;
+  const result = await events.findOneAndUpdate(
+    {
+      id: event.id,
+      version: event.version,
+      status: { $ne: "Cerrado" },
+      "correctiveActions.id": action.id,
+    },
+    {
+      $set: {
+        "correctiveActions.$.status": req.body.status,
+        "correctiveActions.$.evidence": evidence,
+      },
+      $push: {
+        "correctiveActions.$.history": { date: now, actor: req.user.name, text },
+        history: { date: now, actor: req.user.name, text: `${action.id}: ${text}` },
+      },
+      $inc: { version: 1 },
+    },
+    { returnDocument: "after", projection: { _id: 0 } },
+  );
+  if (!result)
+    throw fail(409, "El evento cambió. Actualiza e intenta de nuevo.");
+  res.json(result.correctiveActions.find((item) => item.id === action.id));
+});
+app.post("/api/events/:id/close", async (req, res) => {
+  if (req.user.role !== "Profesional SST")
+    throw fail(403, "Solo SST puede cerrar un evento.");
+  const event = await authorizedEvent(req);
+  if (!event.verification || !event.investigation)
+    throw fail(409, "Verifica e investiga el evento antes de cerrarlo.");
+  const actions = event.correctiveActions || [];
+  if (!actions.length || actions.some((action) => action.status !== "Completada" || !action.evidence))
+    throw fail(409, "Completa todas las acciones y registra su evidencia antes del cierre.");
+  if (event.status === "Cerrado")
+    throw fail(409, "El evento ya está cerrado.");
+  const now = new Date().toISOString();
+  const result = await events.findOneAndUpdate(
+    { id: event.id, version: event.version, status: { $ne: "Cerrado" } },
+    {
+      $set: { status: "Cerrado", closedAt: now, closedBy: req.user.name },
+      $inc: { version: 1 },
+      $push: { history: { date: now, actor: req.user.name, text: "Evento cerrado tras completar las acciones correctivas" } },
+    },
+    { returnDocument: "after", projection: { _id: 0 } },
+  );
+  if (!result)
+    throw fail(409, "El evento cambió. Actualiza e intenta de nuevo.");
+  res.json(result);
+});
 registerAccidentReports(app, { events, accidentReports, authorizedEvent });
 registerComplaints(app, { complaints, events, privileged });
 const formats = {
