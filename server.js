@@ -136,6 +136,7 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
       activityDescription:
         "Actividad ficticia de demostración; pendiente de verificar por SST.",
       people: [],
+      correctiveActions: [],
       createdAt: now,
       version: 0,
       history: [
@@ -303,6 +304,7 @@ app.post("/api/events", async (req, res) => {
         3000,
       ),
       people,
+      correctiveActions: [],
       status: "Reportado",
       createdAt: now,
       version: 0,
