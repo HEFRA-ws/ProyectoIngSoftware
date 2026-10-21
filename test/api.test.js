@@ -12,7 +12,9 @@ process.env.MONGODB_DB = "vigia_test";
 process.env.DATA_DIR = directory;
 delete process.env.MONGODB_URI;
 const { app, closeDatabase, client } = await import("../server.js");
-const { migrateLegacyEvents } = await import("../lib/migrations.js");
+const { migrateDemoAdminName, migrateLegacyEvents } = await import(
+  "../lib/migrations.js"
+);
 const server = app.listen(0, "127.0.0.1");
 await new Promise((r) => server.once("listening", r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -58,6 +60,46 @@ after(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 test("API: autenticación, roles, persistencia, investigación y evidencia", async (t) => {
+  await t.test("corrige el nombre demo anterior sin sobrescribir nombres personalizados", async () => {
+    const migrationDb = client.db("vigia_demo_name_test");
+    const demoUsers = migrationDb.collection("users");
+    const legacyAdmin = {
+      id: "admin",
+      email: "admin@vigia.demo",
+      role: "Administrador",
+      name: "Administrador",
+      password: "hash-conservado",
+    };
+    await demoUsers.insertMany([
+      legacyAdmin,
+      {
+        id: "other-admin",
+        email: "otro@example.com",
+        role: "Administrador",
+        name: "Administrador",
+      },
+    ]);
+    await migrateDemoAdminName(migrationDb);
+    await migrateDemoAdminName(migrationDb);
+    const saved = await demoUsers.findOne({ id: "admin" });
+    assert.equal(saved.name, "Carlos Ramírez");
+    assert.equal(saved.role, legacyAdmin.role);
+    assert.equal(saved.password, legacyAdmin.password);
+    assert.equal(
+      (await demoUsers.findOne({ id: "other-admin" })).name,
+      "Administrador",
+    );
+    await demoUsers.updateOne(
+      { id: "admin" },
+      { $set: { name: "Nombre personalizado" } },
+    );
+    await migrateDemoAdminName(migrationDb);
+    assert.equal(
+      (await demoUsers.findOne({ id: "admin" })).name,
+      "Nombre personalizado",
+    );
+    await migrationDb.dropDatabase();
+  });
   await t.test(
     "migra los registros y adjuntos antiguos sin cambiar sus códigos",
     async () => {
@@ -118,6 +160,10 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     const r = await request("/me", "GET", null, worker);
     assert.equal(r.result.role, "Trabajador");
     assert.equal(r.result.password, undefined);
+    const adminProfile = await request("/me", "GET", null, admin);
+    assert.equal(adminProfile.result.name, "Carlos Ramírez");
+    assert.equal(adminProfile.result.role, "Administrador");
+    assert.equal(adminProfile.result.password, undefined);
   });
   await t.test("valida campos, tipo y fechas futuras", async () => {
     for (const value of [

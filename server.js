@@ -1,5 +1,9 @@
 import express from "express";
-import { migrateLegacyEvents } from "./lib/migrations.js";
+import {
+  DEMO_ADMIN_NAME,
+  migrateDemoAdminName,
+  migrateLegacyEvents,
+} from "./lib/migrations.js";
 import { registerAccidentReports } from "./lib/accident-reports.js";
 import { registerComplaints } from "./lib/complaints.js";
 import { MongoClient } from "mongodb";
@@ -91,7 +95,7 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
     },
     {
       id: "admin",
-      name: "Administrador",
+      name: DEMO_ADMIN_NAME,
       email: "admin@vigia.demo",
       password,
       role: "Administrador",
@@ -158,6 +162,8 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
     })),
   );
 }
+if (process.env.DEMO_MODE === "true") await migrateDemoAdminName(db);
+
 export const app = express();
 app.disable("x-powered-by");
 app.use((req, res, next) => {
