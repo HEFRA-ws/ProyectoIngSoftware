@@ -864,6 +864,245 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       404,
     );
   });
+  let actionEventId, actionId;
+  await t.test(
+    "exige verificación e investigación antes de asignar acciones",
+    async () => {
+      const created = await request("/events", "POST", event, worker);
+      assert.equal(created.response.status, 201);
+      actionEventId = created.result.id;
+      const action = {
+        description: "Señalizar el pasillo del almacén",
+        responsible: "Jefe de almacén",
+        dueDate: "2026-12-15",
+      };
+      assert.equal(
+        (
+          await request(
+            "/events/" + actionEventId + "/actions",
+            "POST",
+            action,
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      const verified = await request(
+        "/events/" + actionEventId,
+        "PATCH",
+        {
+          action: "classify",
+          type: "Incidente",
+          notes: "Incidente confirmado en la inspección.",
+        },
+        sst,
+      );
+      assert.equal(verified.response.status, 200);
+      assert.equal(verified.result.status, "En investigación");
+      assert.equal(
+        (
+          await request(
+            "/events/" + actionEventId + "/actions",
+            "POST",
+            action,
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      const investigated = await request(
+        "/events/" + actionEventId,
+        "PATCH",
+        {
+          action: "investigate",
+          immediate: "Cajas apiladas en zona de tránsito.",
+          basic: "No existe demarcación del pasillo.",
+          conclusion: "Se requiere demarcar y señalizar el pasillo.",
+        },
+        sst,
+      );
+      assert.equal(investigated.response.status, 200);
+      assert.equal(
+        (
+          await request(
+            "/events/" + actionEventId + "/close",
+            "POST",
+            {},
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+    },
+  );
+  await t.test(
+    "solo SST asigna acciones y valida responsable y fecha límite",
+    async () => {
+      const path = "/events/" + actionEventId + "/actions";
+      const action = {
+        description: "Señalizar el pasillo del almacén",
+        responsible: "Jefe de almacén",
+        dueDate: "2026-12-15",
+      };
+      for (const cookie of [worker, coordinator, admin])
+        assert.equal(
+          (await request(path, "POST", action, cookie)).response.status,
+          403,
+        );
+      for (const invalid of [
+        { ...action, responsible: "" },
+        { ...action, description: "" },
+        { ...action, dueDate: "mañana" },
+        { ...action, dueDate: "2026-02-30" },
+        { ...action, dueDate: undefined },
+      ])
+        assert.equal(
+          (await request(path, "POST", invalid, sst)).response.status,
+          400,
+        );
+      const r = await request(path, "POST", action, sst);
+      assert.equal(r.response.status, 201);
+      assert.match(r.result.id, /^AC-/);
+      assert.equal(r.result.status, "Pendiente");
+      assert.equal(r.result.responsible, "Jefe de almacén");
+      assert.equal(r.result.evidence, "");
+      assert.equal(r.result.history.length, 1);
+      actionId = r.result.id;
+    },
+  );
+  await t.test(
+    "actualiza el estado y exige evidencia para completar la acción",
+    async () => {
+      const path = "/events/" + actionEventId + "/actions/" + actionId;
+      assert.equal(
+        (await request(path, "PATCH", { status: "En curso" }, worker)).response
+          .status,
+        403,
+      );
+      assert.equal(
+        (await request(path, "PATCH", { status: "Archivada" }, sst)).response
+          .status,
+        400,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + actionEventId + "/actions/AC-NOEXISTE",
+            "PATCH",
+            { status: "En curso" },
+            sst,
+          )
+        ).response.status,
+        404,
+      );
+      const progress = await request(path, "PATCH", { status: "En curso" }, sst);
+      assert.equal(progress.response.status, 200);
+      assert.equal(progress.result.status, "En curso");
+      assert.equal(
+        (await request(path, "PATCH", { status: "Completada" }, sst)).response
+          .status,
+        400,
+      );
+      assert.equal(
+        (
+          await request(
+            "/events/" + actionEventId + "/close",
+            "POST",
+            {},
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      const done = await request(
+        path,
+        "PATCH",
+        {
+          status: "Completada",
+          evidence: "Registro fotográfico de la demarcación instalada.",
+        },
+        sst,
+      );
+      assert.equal(done.response.status, 200);
+      assert.equal(done.result.status, "Completada");
+      assert.equal(
+        done.result.evidence,
+        "Registro fotográfico de la demarcación instalada.",
+      );
+      assert.equal(done.result.history.length, 3);
+    },
+  );
+  await t.test(
+    "solo SST cierra el evento y después no admite cambios",
+    async () => {
+      const base = "/events/" + actionEventId;
+      for (const cookie of [worker, coordinator, admin])
+        assert.equal(
+          (await request(base + "/close", "POST", {}, cookie)).response.status,
+          403,
+        );
+      const closed = await request(base + "/close", "POST", {}, sst);
+      assert.equal(closed.response.status, 200);
+      assert.equal(closed.result.status, "Cerrado");
+      assert.equal(closed.result.closedBy, "Daniel Rojas");
+      assert.ok(closed.result.closedAt);
+      assert.equal(
+        closed.result.history.at(-1).text,
+        "Evento cerrado tras completar las acciones correctivas",
+      );
+      assert.equal(
+        (await request(base + "/close", "POST", {}, sst)).response.status,
+        409,
+      );
+      assert.equal(
+        (
+          await request(
+            base,
+            "PATCH",
+            {
+              action: "investigate",
+              immediate: "Cambio tardío",
+              basic: "Cambio tardío",
+              conclusion: "Cambio tardío",
+            },
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      assert.equal(
+        (
+          await request(
+            base + "/actions",
+            "POST",
+            {
+              description: "Acción tardía",
+              responsible: "Jefe de almacén",
+              dueDate: "2026-12-20",
+            },
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      assert.equal(
+        (
+          await request(
+            base + "/actions/" + actionId,
+            "PATCH",
+            { status: "En curso" },
+            sst,
+          )
+        ).response.status,
+        409,
+      );
+      const list = await request("/events", "GET", null, worker);
+      assert.equal(
+        list.result.find((item) => item.id === actionEventId).status,
+        "Cerrado",
+      );
+    },
+  );
   await t.test("bloquea solicitudes de otro origen", async () =>
     assert.equal(
       (await request("/events", "POST", event, worker, "https://otro.example"))
