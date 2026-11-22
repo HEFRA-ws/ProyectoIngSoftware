@@ -2,6 +2,10 @@
 
 Prototipo académico de una aplicación web para registrar y hacer seguimiento a accidentes e incidentes laborales.
 
+**Aplicación desplegada:** [vigia-sst-io46.onrender.com](https://vigia-sst-io46.onrender.com) · **Wiki:** [documentación del proyecto](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki) · **Arquitectura:** [docs/Arquitectura.md](docs/Arquitectura.md)
+
+> El servicio usa el plan gratuito de Render: si lleva un rato sin uso, la primera carga puede tardar cerca de un minuto.
+
 ## Corrección de la versión 0.2
 
 El **evento** es la declaración inicial del accidente o incidente. El **informe interno SST** es un documento posterior y separado, creado solo para un accidente verificado. La investigación se mantiene para ambos tipos. Emitir un informe no cierra el evento.
@@ -18,7 +22,7 @@ Las observaciones del profesor y las decisiones de formato propuestas por el equ
 | API REST | Node.js 24 y Express 5 |
 | Persistencia | MongoDB y controlador oficial para Node.js |
 | Calidad | Node Test Runner y GitHub Actions |
-| Despliegue previsto | Render y MongoDB Atlas |
+| Despliegue | Render (servicio web) y MongoDB Atlas (cluster M0) |
 
 El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proyecto](https://github.com/JuanesBD/Avance-1-de-Proyecto). La implementación de esta versión utiliza Node.js y Express en lugar de Java y Spring Boot. El cambio busca mantener un solo lenguaje en interfaz y servidor.
 
@@ -35,9 +39,19 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 
 Pendientes: carga de archivos como evidencia de acciones, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El inicio con Google también queda fuera de esta versión.
 
-## Ejecución local
+## Guía de instalación en un computador nuevo
 
-Requisitos: Node.js 24 LTS, Git y conexión a internet en la primera instalación.
+### 1. Requisitos
+
+| Herramienta | Versión | Cómo comprobarla |
+| --- | --- | --- |
+| [Node.js](https://nodejs.org/) | 24 LTS (el proyecto exige `>=24 <25`) | `node -v` |
+| [Git](https://git-scm.com/downloads) | Cualquiera reciente | `git --version` |
+| pnpm | 10 o superior, se activa con Corepack (incluido en Node.js) | `pnpm -v` |
+
+También se necesita conexión a internet en la primera instalación.
+
+### 2. Clonar e instalar
 
 ```bash
 git clone https://github.com/HEFRA-ws/ProyectoIngSoftware.git
@@ -46,21 +60,46 @@ corepack enable
 pnpm install --frozen-lockfile --ignore-scripts
 ```
 
-Copia `.env.example` como `.env`. En PowerShell:
+Si `pnpm -v` muestra una versión 9 o anterior, ejecuta `corepack prepare pnpm@latest --activate`. En Windows, si `corepack enable` responde con un error de permisos, abre PowerShell como administrador y repite el comando. Si PowerShell bloquea la ejecución de `pnpm`, ejecuta una vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+### 3. Configurar variables de entorno
+
+Copia `.env.example` como `.env`:
+
+```bash
+# Linux / macOS / Git Bash
+cp .env.example .env
+```
 
 ```powershell
+# PowerShell
 Copy-Item .env.example .env
 ```
 
-Configura una contraseña de demostración de al menos 12 caracteres en `DEMO_PASSWORD`, y ejecuta:
+Edita `.env` y pon en `DEMO_PASSWORD` una contraseña de al menos 12 caracteres. Deja `MONGODB_URI` vacía para usar la base local de desarrollo, o pega una conexión de MongoDB Atlas para usar la nube.
+
+### 4. Ejecutar
 
 ```bash
 pnpm start
 ```
 
-Abre `http://localhost:3000`. Si `MONGODB_URI` está vacío y `DEMO_MODE=true`, se inicia un proceso MongoDB local mediante `mongodb-memory-server`. La primera ejecución descarga el binario oficial de MongoDB; puede tardar varios minutos. Aunque la biblioteca se denomina memory-server, esta configuración utiliza WiredTiger y guarda datos en `data/`. No utiliza SQLite ni localStorage como base de datos.
+Abre `http://localhost:3000` e inicia sesión con uno de los accesos de demostración (tabla siguiente).
 
-En producción el servidor exige `MONGODB_URI`; no inicia el MongoDB de desarrollo.
+Si `MONGODB_URI` está vacía y `DEMO_MODE=true`, se inicia un proceso MongoDB local mediante `mongodb-memory-server`. La primera ejecución descarga el binario oficial de MongoDB y puede tardar varios minutos. Los datos se guardan en `data/`. No utiliza SQLite ni localStorage como base de datos.
+
+En producción (`NODE_ENV=production`) el servidor exige `MONGODB_URI` y no inicia el MongoDB de desarrollo.
+
+### 5. Problemas frecuentes
+
+| Síntoma | Solución |
+| --- | --- |
+| `ERR_PNPM_... packages field missing or empty` | Se está usando pnpm 9. Ejecuta `corepack prepare pnpm@latest --activate` y vuelve a abrir la terminal |
+| `Unsupported engine` o errores de sintaxis al iniciar | Instala Node.js 24 LTS |
+| `Configura MONGODB_URI para conectar MongoDB.` | Estás en modo producción o con `DEMO_MODE` distinto de `true`; define `MONGODB_URI` |
+| La primera ejecución se queda descargando | Es la descarga única del binario de MongoDB local; espera o usa una URI de Atlas |
+| `EADDRINUSE: 3000` | Otro programa usa el puerto; cambia `PORT` en `.env` |
+| No funciona el login con la contraseña nueva | Los usuarios demo se crean solo la primera vez; borra la carpeta `data/` (solo en local) y reinicia |
 
 ### Accesos de demostración
 
@@ -94,7 +133,7 @@ Los cuatro accesos usan el valor de `DEMO_PASSWORD`. Los usuarios se crean únic
 pnpm test
 ```
 
-Las pruebas de integración levantan una base MongoDB aislada y un servidor en un puerto temporal. Verifican autenticación, autorización, validaciones, separación de eventos e informes, verificación, investigación y emisión, adjuntos y cierre de sesión. El flujo de GitHub Actions ejecuta estas comprobaciones en cada push a `main` y en pull requests.
+Las pruebas de integración levantan una base MongoDB aislada y un servidor en un puerto temporal. Verifican autenticación, autorización, validaciones, separación de eventos e informes, verificación, investigación y emisión, acciones correctivas y cierre de eventos, quejas y reclamos, adjuntos y cierre de sesión. El flujo de GitHub Actions ejecuta estas comprobaciones en cada push a `main` y en pull requests.
 
 Consulta [Historias de usuario](docs/Historias-de-usuario.md), [Correcciones](docs/Correcciones.md), [Diagramas](docs/Diagramas.md), [Calidad](docs/Calidad.md), [Riesgos](docs/Riesgos.md), [Gestión de configuración](docs/GCS.md) y [Plan de sprints](docs/Sprints.md).
 
@@ -106,9 +145,17 @@ Documentación en [la wiki](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki
 
 ## Despliegue
 
-El archivo `render.yaml` prepara un servicio Node.js en Render. Antes de desplegar es necesario crear la base en MongoDB Atlas y configurar `MONGODB_URI` y `DEMO_PASSWORD` como valores privados en Render.
+Producción: **[https://vigia-sst-io46.onrender.com](https://vigia-sst-io46.onrender.com)**, servida por Render con la base en MongoDB Atlas.
 
-Consulta [la guía de despliegue](docs/Despliegue.md). Esta versión no incluye una URL pública de la aplicación hasta completar y verificar ese despliegue.
+| Parámetro de Render | Valor |
+| --- | --- |
+| Build Command | `corepack enable && pnpm install --frozen-lockfile --prod --ignore-scripts` |
+| Start Command | `node server.js` |
+| Health Check Path | `/api/health` |
+| Variables públicas | `NODE_VERSION=24.19.0`, `NODE_ENV=production`, `COOKIE_SECURE=true`, `DEMO_MODE=true`, `MONGODB_DB=vigia` |
+| Variables privadas | `MONGODB_URI`, `DEMO_PASSWORD` |
+
+El archivo `render.yaml` contiene la misma configuración como Blueprint. El paso a paso de Atlas y Render y la lista de verificación están en [la guía de despliegue](docs/Despliegue.md); los resultados de las pruebas sobre la URL pública, en [Calidad](docs/Calidad.md).
 
 ## Alcance académico
 
