@@ -1,6 +1,6 @@
 # Despliegue en Render y MongoDB Atlas
 
-Estado actual: preparado, pendiente de configurar las cuentas y verificar una URL pública.
+Estado actual: desplegado el 22 de noviembre de 2026 en https://vigia-sst-io46.onrender.com (commit eb06c78), región Virginia, base en MongoDB Atlas M0 (AWS us-east-1).
 
 ## 1. MongoDB Atlas
 
@@ -18,6 +18,10 @@ Estado actual: preparado, pendiente de configurar las cuentas y verificar una UR
 4. Verificar `NODE_ENV=production`, `COOKIE_SECURE=true`, `DEMO_MODE=true` y `MONGODB_DB=vigia` para la demostración.
 5. Revisar la disponibilidad y condiciones del plan antes de confirmar cualquier contratación. La plantilla solicita el plan `free`; su disponibilidad depende de la cuenta y la plataforma.
 6. Iniciar el despliegue y comprobar los logs sin divulgar credenciales.
+
+### Alternativa sin acceso de administrador al repositorio
+
+Si la cuenta de Render no puede conectarse a la organización dueña del repositorio, crear *New → Web Service → Public Git Repository* con `https://github.com/HEFRA-ws/ProyectoIngSoftware` y cargar a mano la configuración de `render.yaml`: Build Command `corepack enable && pnpm install --frozen-lockfile --prod --ignore-scripts`, Start Command `node server.js`, Health Check Path `/api/health` y las mismas variables. En esta modalidad cada nuevo commit se publica con *Manual Deploy*.
 
 ## 3. Verificación después de publicar
 
