@@ -1,14 +1,46 @@
 # Arquitectura y modelo de datos
 
-Versión 0.3. El registro del evento, su investigación y el informe interno del accidente son elementos distintos.
+Versión 1.0 (entrega final). El registro del evento, su investigación y el informe interno del accidente son elementos distintos.
+
+## Arquitectura de despliegue
 
 ```mermaid
 flowchart LR
-  U[Navegador: Bootstrap y JavaScript] -->|Sesión y API REST| A[Node.js y Express]
-  A --> E[(events: registro inicial)]
-  A --> I[(accidentReports: informe SST)]
-  A --> D[(MongoDB: usuarios, sesiones y evidencia)]
-  G[GitHub] --> C[GitHub Actions: integración]
+  subgraph Cliente
+    U["Navegador<br/>HTML, CSS, JavaScript y Bootstrap 5"]
+  end
+  subgraph Render["Render (Web Service, HTTPS)"]
+    S["Express 5 sobre Node.js 24<br/>sirve /public y la API REST"]
+    M["Middleware de sesión<br/>cookie HttpOnly y Secure"]
+    R["Rutas: eventos, evidencia,<br/>informes SST, acciones, quejas"]
+    S --> M --> R
+  end
+  subgraph Atlas["MongoDB Atlas (cluster M0)"]
+    DB[("Base vigia<br/>users, sessions, events,<br/>accidentReports, evidence,<br/>complaints, attempts")]
+  end
+  subgraph GitHub
+    G["Repositorio<br/>HEFRA-ws/ProyectoIngSoftware"]
+    CI["GitHub Actions<br/>node --check y pnpm test"]
+    G --> CI
+  end
+  U -- "HTTPS: páginas y JSON" --> S
+  R -- "Driver oficial MongoDB<br/>MONGODB_URI privada" --> DB
+  G -- "Despliegue del commit en main" --> S
+```
+
+El navegador nunca se conecta a la base: toda lectura y escritura pasa por la API, que valida la sesión y el rol en el servidor. La cadena `MONGODB_URI` y `DEMO_PASSWORD` se configuran como variables privadas en Render. En desarrollo local, si `MONGODB_URI` está vacía y `DEMO_MODE=true`, el servidor levanta un MongoDB local con `mongodb-memory-server`.
+
+## Capas del servidor
+
+```mermaid
+flowchart TB
+  A["server.js<br/>configuración, login, sesiones, eventos, evidencia, acciones y cierre"]
+  B["lib/accident-reports.js<br/>catálogos e informe interno SST"]
+  C["lib/complaints.js<br/>quejas y reclamos con plazo de respuesta"]
+  D["lib/migrations.js<br/>migración reports → events"]
+  A --> B
+  A --> C
+  A --> D
 ```
 
 ## Colecciones y responsabilidades
@@ -20,6 +52,7 @@ flowchart LR
 | events | Declaración, actividad, personas, verificación, investigación, acciones correctivas, cierre e historial | Propietario, rol y versión |
 | accidentReports | Documento interno, evento asociado, autor, gravedad, datos verificados y estado propio | Un informe por accidente; solo SST edita |
 | evidence | Binario y metadatos asociados a eventId | Autorización en carga y descarga |
+| complaints | Queja o reclamo, autor, evento relacionado, plazo y respuesta | Autor y responsables (SST, administrador) |
 | attempts | Intentos fallidos y expiración | Limitación de login |
 
 Los catálogos iniciales de actividad, mecanismo, lesión y parte afectada se definen en `lib/accident-reports.js` y se entregan a la interfaz mediante la API. Son opciones internas del prototipo, no un catálogo oficial FURAT.
@@ -47,16 +80,21 @@ El estado del informe no sustituye al del evento. Emitirlo no cierra el caso. Un
 
 ## Permisos
 
+Verificados contra el código del servidor (`server.js`, `lib/accident-reports.js`, `lib/complaints.js`) y las pruebas de integración.
+
 | Acción | Trabajador | Profesional SST | Coordinador | Administrador |
 | --- | --- | --- | --- | --- |
 | Registrar evento | Sí | Sí | No | Sí |
 | Consultar eventos e informes | Propios | Todos | Todos | Todos |
 | Adjuntar evidencia | Propios | Todos | No | Todos |
-| Verificar e investigar | No | Sí | No | Sí |
-| Crear, editar y emitir informe | No | Sí | No | Sí |
+| Verificar e investigar | No | Sí | No | No |
+| Crear, editar y emitir informe | No | Sí | No | No |
 | Asignar/actualizar acciones y cerrar evento | No | Sí | No | No |
+| Radicar queja o reclamo | Sí | Sí | Sí | Sí |
+| Consultar quejas y reclamos | Propios | Todos | Propios | Todos |
+| Responder queja o reclamo | No | Sí | No | Sí |
 
-Los borradores también son consultables por el propietario del evento; la escritura se reserva a SST y administrador. El módulo de administración de cuentas sigue pendiente.
+El propietario de un evento puede consultar el informe asociado, incluso en borrador, pero solo el profesional SST lo escribe. El módulo de administración de cuentas queda como trabajo futuro.
 
 ## API del dominio
 
