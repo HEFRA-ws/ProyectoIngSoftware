@@ -31,6 +31,7 @@ const icon = (n) =>
   `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n] || paths.file}"/></svg>`;
 const brand = () =>
   `<div class="brand"><span class="brand-mark">${icon("shield")}</span><div>vigía<span class="muted">.</span><small>SEGURIDAD Y SALUD</small></div></div>`;
+let googleEnabled = false;
 let user,
   events = [],
   accidentReports = [],
@@ -71,9 +72,16 @@ function toast(message) {
   $("#toast").classList.add("show");
   setTimeout(() => $("#toast").classList.remove("show"), 5000);
 }
+const googleErrors = {
+  google_unavailable: "El acceso con Google todavía no está habilitado. Puedes entrar con correo y contraseña.",
+  google_state: "El acceso con Google venció o no corresponde a este navegador. Inténtalo de nuevo.",
+  google_cancelled: "Cancelaste el acceso con Google. Puedes intentarlo otra vez.",
+  google_existing: "Este correo ya tiene una cuenta. Ingresa con su contraseña habitual.",
+  google_failed: "No se pudo completar el acceso con Google. Inténtalo nuevamente o usa tu contraseña.",
+};
 function login(error = "") {
   $("#app").innerHTML =
-    `<main class="login"><section class="login-story">${brand()}<div class="story-main"><div class="eyebrow">Cuidar empieza por actuar</div><h1>Un entorno seguro.<br><span>Un equipo protegido.</span></h1><div class="story-line"></div><p>Registra lo que sucede, comprende las causas y construye un lugar de trabajo más seguro.</p></div><div class="story-foot">${icon("shield")}<span>Gestión de accidentes e incidentes laborales</span></div></section><section class="login-form-area"><div class="login-box"><div class="eyebrow">Bienvenido a Vigía SST</div><h2>Tu seguridad, en un solo lugar.</h2><p class="muted">Ingresa a tu cuenta para continuar con la gestión y el seguimiento de tus eventos.</p><form id="login-form"><div><label class="form-label" for="email">Correo electrónico</label><input id="email" name="email" type="email" class="form-control" placeholder="nombre@empresa.com" autocomplete="username" required maxlength="200"></div><div><label class="form-label" for="password">Contraseña</label><input id="password" name="password" type="password" class="form-control" placeholder="Ingresa tu contraseña" autocomplete="current-password" required maxlength="256"></div><div class="error" id="form-error" role="alert">${esc(error)}</div><button class="btn btn-primary" type="submit">Iniciar sesión ${icon("arrow")}</button></form><div class="login-note"><details><summary>Accesos para la demostración académica</summary><div class="mt-2">Trabajador: <code>trabajador@vigia.demo</code><br>Profesional SST: <code>sst@vigia.demo</code><br>Coordinador: <code>coordinador@vigia.demo</code><br>Administrador: <code>admin@vigia.demo</code><br>Usa la contraseña configurada por el equipo.</div></details></div><p class="hint mt-4">Prototipo académico. Utiliza únicamente datos ficticios.</p></div></section></main>`;
+    `<main class="login"><section class="login-story">${brand()}<div class="story-main"><div class="eyebrow">Cuidar empieza por actuar</div><h1>Un entorno seguro.<br><span>Un equipo protegido.</span></h1><div class="story-line"></div><p>Registra lo que sucede, comprende las causas y construye un lugar de trabajo más seguro.</p></div><div class="story-foot">${icon("shield")}<span>Gestión de accidentes e incidentes laborales</span></div></section><section class="login-form-area"><div class="login-box"><div class="eyebrow">Bienvenido a Vigía SST</div><h2>Tu seguridad, en un solo lugar.</h2><p class="muted">Ingresa a tu cuenta para continuar con la gestión y el seguimiento de tus eventos.</p><form id="login-form"><div><label class="form-label" for="email">Correo electrónico</label><input id="email" name="email" type="email" class="form-control" placeholder="nombre@empresa.com" autocomplete="username" required maxlength="200"></div><div><label class="form-label" for="password">Contraseña</label><input id="password" name="password" type="password" class="form-control" placeholder="Ingresa tu contraseña" autocomplete="current-password" required maxlength="256"></div><div class="error" id="form-error" role="alert">${esc(error)}</div><button class="btn btn-primary" type="submit">Iniciar sesión ${icon("arrow")}</button></form>${googleEnabled ? `<div class="login-note"><p class="hint">O utiliza tu cuenta de Google</p><a class="btn btn-light w-100" href="/auth/google">Continuar con Google</a><p class="hint mt-2">¿Primera vez? Al continuar se creará tu cuenta como trabajador.</p></div>` : ""}<div class="login-note"><details><summary>Accesos para la demostración académica</summary><div class="mt-2">Trabajador: <code>trabajador@vigia.demo</code><br>Profesional SST: <code>sst@vigia.demo</code><br>Coordinador: <code>coordinador@vigia.demo</code><br>Administrador: <code>admin@vigia.demo</code><br>Usa la contraseña configurada por el equipo.</div></details></div><p class="hint mt-4">Prototipo académico. Utiliza únicamente datos ficticios.</p></div></section></main>`;
 }
 function shell() {
   const labels = {
@@ -582,11 +590,22 @@ document.addEventListener("submit", async (e) => {
   }
 });
 (async () => {
+  const params = new URLSearchParams(location.search);
+  const googleError = googleErrors[params.get("authError")] || "";
+  if (params.has("authError")) {
+    params.delete("authError");
+    history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + location.hash);
+  }
+  try {
+    googleEnabled = Boolean((await api("/auth/config")).google);
+  } catch {
+    googleEnabled = false;
+  }
   try {
     user = await api("/me");
     await refresh();
     shell();
   } catch (error) {
-    login(error.status === 401 ? "" : error.message);
+    login(googleError || (error.status === 401 ? "" : error.message));
   }
 })();

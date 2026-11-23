@@ -7,6 +7,7 @@ import {
 import { registerAccidentReports } from "./lib/accident-reports.js";
 import { registerComplaints } from "./lib/complaints.js";
 import { seedDemoData } from "./lib/demo-data.js";
+import { registerGoogleAuth } from "./lib/google-auth.js";
 import { MongoClient } from "mongodb";
 import {
   randomBytes,
@@ -65,6 +66,7 @@ async function passwordHash(p) {
   return salt + ":" + (await scrypt(p, salt, 64)).toString("hex");
 }
 async function verify(p, h) {
+  if (typeof h !== "string") return false;
   const [salt, value] = h.split(":");
   return timingSafeEqual(await scrypt(p, salt, 64), Buffer.from(value, "hex"));
 }
@@ -217,6 +219,19 @@ const publicUser = (u) => ({
   email: u.email,
   role: u.role,
 });
+async function createSession(u, res) {
+  const token = randomBytes(32).toString("hex");
+  await sessions.insertOne({
+    _id: hashToken(token), userId: u.id,
+    expires: new Date(Date.now() + 28800000),
+  });
+  res.cookie("session", token, {
+    httpOnly: true, sameSite: "lax",
+    secure: process.env.COOKIE_SECURE === "true" || process.env.NODE_ENV === "production",
+    maxAge: 28800000, path: "/",
+  });
+}
+await registerGoogleAuth(app, { db, createSession });
 app.get("/api/health", async (req, res) => {
   await db.command({ ping: 1 });
   res.json({ status: "ok" });
@@ -240,19 +255,7 @@ app.post("/api/login", async (req, res) => {
     throw fail(401, "Correo o contraseña incorrectos.");
   }
   await attempts.deleteOne({ _id: key });
-  const token = randomBytes(32).toString("hex");
-  await sessions.insertOne({
-    _id: hashToken(token),
-    userId: u.id,
-    expires: new Date(Date.now() + 28800000),
-  });
-  res.cookie("session", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.COOKIE_SECURE === "true",
-    maxAge: 28800000,
-    path: "/",
-  });
+  await createSession(u, res);
   res.json(publicUser(u));
 });
 app.use("/api", async (req, res, next) => {
