@@ -6,6 +6,7 @@ import {
 } from "./lib/migrations.js";
 import { registerAccidentReports } from "./lib/accident-reports.js";
 import { registerComplaints } from "./lib/complaints.js";
+import { seedDemoData } from "./lib/demo-data.js";
 import { MongoClient } from "mongodb";
 import {
   randomBytes,
@@ -163,6 +164,18 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
   );
 }
 if (process.env.DEMO_MODE === "true") await migrateDemoAdminName(db);
+if (
+  process.env.DEMO_MODE === "true" &&
+  process.env.NODE_ENV !== "test" &&
+  process.env.DEMO_PASSWORD?.length >= 12
+) {
+  const inserted = await seedDemoData(
+    db,
+    await passwordHash(process.env.DEMO_PASSWORD),
+  );
+  if (inserted)
+    console.log(`Datos de demostración: ${inserted} registros nuevos.`);
+}
 
 export const app = express();
 app.disable("x-powered-by");
