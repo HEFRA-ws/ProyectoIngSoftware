@@ -21,6 +21,7 @@ const { migrateDemoAdminName, migrateLegacyEvents } = await import(
 const { seedDemoData, demoScenarioCount } = await import(
   "../lib/demo-data.js"
 );
+const { responseDeadline } = await import("../lib/complaints.js");
 const server = app.listen(0, "127.0.0.1");
 await new Promise((r) => server.once("listening", r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -939,6 +940,10 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
   );
 
   await t.test("radica quejas y reclamos con plazo de respuesta", async () => {
+    // Domingo y viernes de noche en Colombia ya son el día siguiente en UTC.
+    assert.equal(responseDeadline("2026-11-23T04:00:00.000Z"), "2026-12-12T04:00:00.000Z");
+    assert.equal(responseDeadline("2026-11-21T04:00:00.000Z", 1), "2026-11-24T04:00:00.000Z");
+    assert.equal(responseDeadline("2026-11-23T15:00:00.000Z"), "2026-12-14T15:00:00.000Z");
     const queja = {
       type: "Queja",
       subject: "Demora en la revisión",
