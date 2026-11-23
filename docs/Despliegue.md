@@ -1,6 +1,6 @@
 # Despliegue en Render y MongoDB Atlas
 
-Estado actual: desplegado el 22 de noviembre de 2026 en https://vigia-sst-io46.onrender.com (commit eb06c78), región Virginia, base en MongoDB Atlas M0 (AWS us-east-1).
+Último despliegue verificado: 22 de noviembre de 2026 en https://vigia-sst-io46.onrender.com (commit 0612796), región Virginia, base en MongoDB Atlas. Se completaron 68 comprobaciones HTTP sobre ese despliegue y un acceso real con Google; véase [Calidad](Calidad.md). Los cambios posteriores necesitan un nuevo Manual Deploy si Render no está conectado para despliegue automático.
 
 ## 1. MongoDB Atlas
 
@@ -36,8 +36,8 @@ Si la cuenta de Render no puede conectarse a la organización dueña del reposit
 | Revisión pública | Fecha | Resultado |
 | --- | --- | --- |
 | `GET /api/health` en `vigia-sst-io46.onrender.com` | 2026-11-22 | Respondió `{"status":"ok"}` |
-| Página de acceso en ambas URL | 2026-11-22 | El formulario de login cargó |
-| Verificación funcional completa | Pendiente | Falta probar los roles, los flujos de eventos e informes, los adjuntos y la persistencia en Atlas |
+| Página de acceso oficial | 2026-11-22 | Cargan correo/contraseña y Google; privacidad accesible |
+| Flujos críticos en producción | 2026-11-22 23:09 Colombia | 68 comprobaciones HTTP correctas: roles, evento, informe, adjuntos, acciones y cierre; datos en Atlas |
 
 La aplicación utiliza una sola instancia web y Atlas para datos; no requiere guardar archivos en el disco efímero de Render. Los adjuntos se almacenan en MongoDB con límites pequeños apropiados al prototipo.
 
@@ -47,7 +47,7 @@ La aplicación utiliza una sola instancia web y Atlas para datos; no requiere gu
 - [Render: despliegue de Node.js y Express](https://render.com/docs/deploy-node-express-app)
 - [Render: variables de entorno](https://render.com/docs/configure-environment-variables)
 
-El servicio está desplegado. La comprobación anterior solo confirma que responde el endpoint de salud y que carga la pantalla de acceso; no sustituye la verificación funcional. Registrar fecha y responsable cuando se complete la lista de la sección 3.
+Los resultados posteriores y su alcance están registrados en Calidad. El acceso, los flujos de eventos e informes y las descargas se probaron en producción; las pruebas de carga, respaldo y restauración siguen pendientes.
 
 ## Acceso opcional con Google
 

@@ -1,0 +1,428 @@
+{
+  "url": "https://vigia-sst-io46.onrender.com",
+  "startedAt": "2026-11-23T04:09:44.086Z",
+  "checks": [
+    {
+      "label": "Salud y conexión MongoDB",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Configuración Google pública",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "API protegida sin sesión",
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    {
+      "label": "Aviso de privacidad accesible",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Login worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Eventos worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Informes worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Quejas worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Login other",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Eventos other",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Informes other",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Quejas other",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Login sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Eventos sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Informes sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Quejas sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Login coordinator",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Eventos coordinator",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Informes coordinator",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Quejas coordinator",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Login admin",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Eventos admin",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Informes admin",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Quejas admin",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Registro prohibido a sst",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Registro prohibido a coordinator",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Registro prohibido a admin",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Crear Incidente",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Adjuntar evidencia Incidente",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Listar adjuntos Incidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Descargar evidencia Incidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Aislar evidencia de otro trabajador Incidente",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Bloquear verificación de trabajador Incidente",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Verificar Incidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Investigar Incidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Asignar medida Incidente",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Completar medida Incidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Incidente no admite informe de accidente",
+      "status": 409,
+      "expected": 409,
+      "ok": true
+    },
+    {
+      "label": "Cerrar Incidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Bloquear adjuntos después del cierre Incidente",
+      "status": 409,
+      "expected": 409,
+      "ok": true
+    },
+    {
+      "label": "Consultar caso persistido Incidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Crear Accidente",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Adjuntar evidencia Accidente",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Listar adjuntos Accidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Descargar evidencia Accidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Aislar evidencia de otro trabajador Accidente",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Bloquear verificación de trabajador Accidente",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Verificar Accidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Investigar Accidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Asignar medida Accidente",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Completar medida Accidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Accidente no cierra sin informe",
+      "status": 409,
+      "expected": 409,
+      "ok": true
+    },
+    {
+      "label": "Crear informe en borrador",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Accidente no cierra con borrador",
+      "status": 409,
+      "expected": 409,
+      "ok": true
+    },
+    {
+      "label": "Emitir informe",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Cerrar Accidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Bloquear adjuntos después del cierre Accidente",
+      "status": 409,
+      "expected": 409,
+      "ok": true
+    },
+    {
+      "label": "Consultar caso persistido Accidente",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Cerrar sesión worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Sesión invalidada worker",
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    {
+      "label": "Cerrar sesión other",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Sesión invalidada other",
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    {
+      "label": "Cerrar sesión sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Sesión invalidada sst",
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    {
+      "label": "Cerrar sesión coordinator",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Sesión invalidada coordinator",
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    {
+      "label": "Cerrar sesión admin",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Sesión invalidada admin",
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    }
+  ],
+  "cases": [
+    {
+      "id": "SST-0626B0C900",
+      "type": "Incidente",
+      "status": "Cerrado"
+    },
+    {
+      "id": "SST-D0D6D00463",
+      "type": "Accidente",
+      "status": "Cerrado"
+    }
+  ],
+  "success": true,
+  "finishedAt": "2026-11-23T04:09:54.678Z"
+}

@@ -8,7 +8,7 @@ Cumplir criterios de aceptación, validar entradas en servidor, aplicar permisos
 
 ## 1. Pruebas automatizadas de integración
 
-Ejecución: `pnpm test`. Archivo: `test/api.test.js`. Cada ejecución levanta una base MongoDB aislada y un servidor en un puerto temporal; no utiliza la base de la demostración ni la de Atlas.
+Ejecución: `pnpm test`. Archivos: `test/api.test.js` y `test/google-auth.test.js`. Cada ejecución levanta bases MongoDB aisladas y servidores en puertos temporales; no utiliza la base de la demostración ni la de Atlas.
 
 La suite contiene **63 casos de comprobación** agrupados en dos pruebas principales; Node Test Runner informa **65 pruebas** contando los grupos. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request. Los 18 casos del grupo Google verifican firmas RSA y el flujo con proveedor simulado; no equivalen a una autorización real en producción.
 
@@ -59,11 +59,11 @@ Se ejecutaron 44 pruebas locales sobre MongoDB aislado. La regresión del cierre
 
 ## Defectos y regresión
 
-Ampliación de autenticación: 65 pruebas locales pasan después de añadir Google. La revisión de dependencias actualizó `body-parser` a 2.4.0 y `qs` a 6.16.1 dentro de los rangos compatibles de Express; `pnpm audit --prod` no informa vulnerabilidades conocidas en esa ejecución. La pantalla se revisó localmente con configuración ficticia de OAuth y se comprobó el acceso normal de trabajador. Esto acredita la interfaz y la regresión local, no el acceso real a Google, pendiente de configuración y autorización en producción.
+Ampliación de autenticación: 65 pruebas locales pasan después de añadir Google. La revisión de dependencias actualizó `body-parser` a 2.4.0 y `qs` a 6.16.1 dentro de los rangos compatibles de Express; `pnpm audit --prod` no informa vulnerabilidades conocidas en esa ejecución. La pantalla se revisó localmente con configuración ficticia de OAuth y se comprobó el acceso normal de trabajador. Esa primera ronda acreditó la interfaz y la regresión local; el acceso real en producción se completó después y se registra en la verificación final.
 
 La primera ejecución en `main` detectó que las dos suites podían descargar simultáneamente el binario de MongoDB en una máquina nueva (`ENOENT` al renombrar la descarga). Se ajustó el comando de pruebas para ejecutar los archivos secuencialmente; se mantienen todas las comprobaciones y sus bases aisladas.
 
-Prueba real adicional de Google (22 de noviembre, entorno local): se completó la selección de cuenta y la autorización del proveedor, se creó una cuenta Trabajador sin acceso a eventos ajenos y se comprobó salir y volver a entrar. El aviso `/privacidad.html` es accesible sin sesión. Esta comprobación local no acredita la activación de Google en Render, que requiere configurar el servicio y desplegar el commit correspondiente.
+Prueba real adicional de Google (22 de noviembre, entorno local): se completó la selección de cuenta y la autorización del proveedor, se creó una cuenta Trabajador sin acceso a eventos ajenos y se comprobó salir y volver a entrar. El aviso `/privacidad.html` es accesible sin sesión. La comprobación local se completó después con la autorización real en Render, registrada en la sección de verificación final.
 
 Revisión visual local final: el contador «En investigación» excluye los eventos Cerrados; en un ejemplo con diez eventos y dos cerrados muestra tres investigaciones abiertas. El detalle de un caso cerrado muestra la investigación en consulta, sin formulario de edición. Evidencias: [resumen local](imagenes/final-13-resumen-local.png), [caso cerrado local](imagenes/final-12-cierre-informe-local.png) y [listado local](imagenes/final-11-listado-local.png). Estas capturas no se atribuyen al despliegue de Render.
 
@@ -71,6 +71,16 @@ Se comprobó también la instalación de dependencias en un directorio nuevo con
 
 Issue #1: carga de evidencia del coordinador bloqueada en API y cubierta por regresión. Se conservan las pruebas negativas al añadir el informe independiente, las acciones correctivas y las quejas.
 
-## Límites
+## Verificación final en la URL pública
 
-Pendientes: carga de 50 usuarios, accesibilidad exhaustiva, antivirus, auditoría externa y respaldo/restauración. En el despliegue registrado en `eb06c78`, la limitación de intentos usa la IP del proxy de Render y puede compartir el bloqueo entre usuarios. La versión actualizada configura `trust proxy` a un salto y calcula la clave con `req.ip`; falta probarla con Node 24 y verificarla después del despliegue. El cluster M0 de Atlas no incluye copias de seguridad automáticas y el usuario de base de datos de la demo tiene permisos amplios; en un entorno real se limitaría a `readWrite` sobre `vigia` y a las IP del servicio. El plan gratuito de Render suspende el servicio tras un periodo sin tráfico, por lo que la primera solicitud puede tardar cerca de un minuto. No se afirma 99 % de disponibilidad ni tiempos máximos medidos. La existencia del workflow no acredita éxito: comprobar cada ejecución en GitHub Actions.
+Fecha: 22 de noviembre de 2026, 23:09 de Colombia. Despliegue comprobado: `0612796`. El registro [validacion-produccion-final.json](validacion-produccion-final.json) conserva **68 comprobaciones HTTP correctas**, independientes de las 65 pruebas aisladas. Incluye salud de MongoDB, Google habilitado, privacidad, acceso de los cuatro roles, aislamiento de trabajadores, cookies Secure/HttpOnly, consulta de informes y quejas, adjuntos y descarga, verificación e investigación, medidas, emisión de informe y cierre de sesión.
+
+Los casos ficticios `SST-0626B0C900` (Incidente) y `SST-D0D6D00463` (Accidente) quedaron Cerrados. El incidente rechazó crear un informe de accidente; el accidente rechazó el cierre sin informe y con Borrador, y lo permitió después de emitirlo. Ambos rechazaron nuevos adjuntos tras cerrar. Se verificó también un acceso real con Google en Render, con rol Trabajador y sin casos ajenos. No se atribuyen estas comprobaciones a una prueba de carga ni a una auditoría de seguridad externa.
+
+La [captura del accidente de validación en producción](imagenes/final-14-validacion-produccion.png) muestra el informe Emitido, la acción Completada y el estado Cerrado. Los nombres, el relato y la evidencia corresponden a una simulación académica.
+
+La revisión detectó además un error de calendario en quejas radicadas de noche: el cálculo contaba días de UTC, mientras la interfaz usa Colombia. Se corrigió `responseDeadline` para contar días de Colombia (UTC-5), conservando el plazo interno de 15 días hábiles sin festivos. La regresión cubre domingo y viernes de noche, y lunes de día. La corrección se aplica a las nuevas radicaciones; no modifica los plazos históricos. Su comprobación local no equivale a afirmar que ese cambio ya se desplegó.
+
+## Límites de la validación
+
+Pendientes: carga de 50 usuarios, accesibilidad exhaustiva, antivirus, auditoría externa y respaldo/restauración. En el despliegue registrado en `eb06c78`, la limitación de intentos usa la IP del proxy de Render y puede compartir el bloqueo entre usuarios. La versión actualizada configura `trust proxy` a un salto y calcula la clave con `req.ip`; las pruebas de limitación pasan en Node.js 24; queda pendiente comprobar el aislamiento del límite desde varias IP reales. El cluster M0 de Atlas no incluye copias de seguridad automáticas y el usuario de base de datos de la demo tiene permisos amplios; en un entorno real se limitaría a `readWrite` sobre `vigia` y a las IP del servicio. El plan gratuito de Render suspende el servicio tras un periodo sin tráfico, por lo que la primera solicitud puede tardar cerca de un minuto. No se afirma 99 % de disponibilidad ni tiempos máximos medidos. La existencia del workflow no acredita éxito: comprobar cada ejecución en GitHub Actions.

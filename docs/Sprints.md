@@ -28,7 +28,7 @@ Quejas y reclamos, acciones correctivas y cierre condicionado, precarga de datos
 
 ## Etapa posterior
 
-HU09 notificaciones, HU10 estadísticas avanzadas, HU11 exportación PDF. Activar y comprobar Google OAuth en el despliegue mediante las credenciales del responsable (código y pruebas aisladas implementados), ampliar pruebas y ensayar respaldos.
+HU09 notificaciones, HU10 estadísticas avanzadas, HU11 exportación PDF. Google OAuth se completó y se comprobó en la URL pública. Pendientes de evolución: ampliar pruebas de carga y ensayar respaldos.
 
 ## Medición de avance
 

@@ -17,7 +17,22 @@ Fecha de entrega: 22 de noviembre de 2026, antes de las 23:59:59 de Colombia. No
 | Presentación en PDF | [Lectura sin PowerPoint](Presentacion-Final-Vigia-SST.pdf) |
 | GCS fuera de la wiki | [PDF de gestión de configuración](GCS.pdf) |
 
-## Producto y alcance
+## Comprobación de los requisitos de entrega
+
+| Requisito del profesor | Evidencia disponible |
+| --- | --- |
+| Corrección de pendientes | [Correcciones](Correcciones.md), historial Git y pruebas de regresión |
+| Guía para un computador nuevo | README: requisitos, instalación, variables, inicio y solución de problemas |
+| Arquitectura del software | [Arquitectura final](Arquitectura.md), con navegador, Render, Atlas y Google |
+| Producto desplegado | URL pública HTTPS en Render, sin túnel de Cloudflare |
+| Inicio de sesión funcional | Correo/contraseña de cuentas existentes y registro e inicio con Google comprobados en Render |
+| Base de datos SQL o NoSQL | MongoDB Atlas; los flujos crean y recuperan eventos, informes y adjuntos |
+| Pruebas manuales o automatizadas | 65 pruebas aisladas y 68 comprobaciones HTTP en producción; [evidencia](Calidad.md) |
+| Wiki final y diagramas | Clases, secuencias, E-R, arquitectura, historias, riesgos, GCS y calidad |
+| Diapositivas: producto, arquitectura y retos | Presentación final editable y PDF, nueve diapositivas |
+| Cuatro enlaces para la entrega | Aplicación, repositorio, wiki y presentación en la tabla inicial |
+
+## Producto y alcance verificado
 
 La aplicación funciona con Node.js y Express en Render y MongoDB Atlas. El trabajador registra accidentes e incidentes y adjunta evidencia a sus eventos abiertos. SST verifica e investiga, elabora informes internos de accidentes y gestiona acciones correctivas y cierre. Coordinador y administrador consultan los eventos. SST y administrador responden quejas y reclamos.
 
@@ -27,7 +42,7 @@ Las cuentas de demostración aparecen en el README. El equipo debe entregar al p
 
 ## Validación
 
-La revisión local ejecuta 65 pruebas automatizadas (63 casos y dos grupos) con MongoDB aislado. Incluye la integración opcional con Google, cuya activación y comprobación real dependen de configurar credenciales OAuth. Calidad conserva los resultados manuales y capturas aportados por el equipo sobre el despliegue, indicando las comprobaciones no ejecutadas. El endpoint de salud comprueba conexión a MongoDB, pero por sí solo no prueba todos los roles ni el flujo completo. Las diapositivas conservan la evidencia de las 44 pruebas de la revisión anterior a esta ampliación.
+La revisión local ejecuta 65 pruebas automatizadas (63 casos y dos grupos) con MongoDB aislado. Incluye la integración con Google, habilitada y comprobada con una cuenta real en la URL pública. Las instalaciones nuevas necesitan sus variables OAuth. Calidad conserva los resultados manuales y capturas aportados por el equipo sobre el despliegue, indicando las comprobaciones no ejecutadas. El endpoint de salud comprueba conexión a MongoDB, pero por sí solo no prueba todos los roles ni el flujo completo. Las diapositivas incluyen la arquitectura, las 65 pruebas y los retos de la versión final.
 
 Las comprobaciones del código corregido y las de producción deben registrar su commit y su resultado por separado. La existencia del workflow no equivale a una ejecución exitosa ni a un despliegue automático. Véase [Despliegue](Despliegue.md).
 

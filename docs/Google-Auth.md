@@ -1,6 +1,6 @@
 # Registro e inicio de sesión con Google
 
-La integración es opcional. El código incluye el botón **Continuar con Google**, que registra al usuario la primera vez y permite iniciar sesión después. Se muestra solamente cuando el servidor tiene las tres variables de Google válidas. Sin esa configuración sigue disponible el acceso actual mediante correo y contraseña.
+La integración es opcional. El código incluye el botón **Iniciar sesión con Google**, que registra al usuario la primera vez y permite iniciar sesión después. Se muestra solamente cuando el servidor tiene las tres variables de Google válidas. Sin esa configuración sigue disponible el acceso actual mediante correo y contraseña.
 
 ## Configuración
 
@@ -23,7 +23,7 @@ La integración es opcional. El código incluye el botón **Continuar con Google
    | `GOOGLE_REDIRECT_URI` | URI autorizada correspondiente al entorno |
 
 5. Desplegar el commit con la integración. En Render deben mantenerse `NODE_ENV=production` y `COOKIE_SECURE=true`. No es necesario cambiar `DEMO_PASSWORD` ni las cuentas existentes.
-6. Comprobar `/api/auth/config`: debe responder `{"google":true}` sin mostrar credenciales. Abrir la aplicación, elegir **Continuar con Google** y completar la autorización de identidad.
+6. Comprobar `/api/auth/config`: debe responder `{"google":true}` sin mostrar credenciales. Abrir la aplicación, elegir **Iniciar sesión con Google** y completar la autorización de identidad.
 
 ## Comportamiento
 
@@ -42,7 +42,7 @@ sequenceDiagram
   participant V as Vigía SST
   participant G as Google
   participant D as MongoDB
-  U->>V: Continuar con Google
+  U->>V: Iniciar sesión con Google
   V->>D: Guardar estado temporal, nonce y verificador PKCE
   V-->>U: Redirigir a Google con state y desafío PKCE
   U->>G: Elegir cuenta y autorizar identidad
@@ -64,6 +64,6 @@ Los estados caducan en cinco minutos y se eliminan automáticamente mediante un 
 
 Estas pruebas no equivalen a una autorización real con una cuenta de Google. La prueba final sobre Render debe realizarse después de configurar las credenciales: entrar por primera vez, comprobar el rol Trabajador, salir y volver a entrar sin duplicar la cuenta. No publicar el secreto ni capturas que lo contengan.
 
-El 22 de noviembre de 2026 se completó también una autorización real en un entorno local, con creación de cuenta Trabajador y reingreso posterior. La activación en la URL pública sigue pendiente de configurar las variables en la cuenta de Render responsable y de comprobar el despliegue. El estado de publicación de Google y sus requisitos deben revisarse antes de ofrecer el registro a cualquier cuenta externa.
+El 22 de noviembre de 2026 se completó también una autorización real en un entorno local, con creación de cuenta Trabajador y reingreso posterior. Posteriormente se activaron las variables de Render y se comprobó también el acceso real en la URL pública: se creó la cuenta con rol Trabajador, sin eventos ajenos. Google Auth Platform quedó en estado En producción para usuarios externos. Esta comprobación con una cuenta no garantiza que todas las políticas de Google Workspace de otras organizaciones permitan el acceso.
 
 Referencias: [OpenID Connect de Google](https://developers.google.com/identity/openid-connect/openid-connect) y [flujo OAuth para aplicaciones web](https://developers.google.com/identity/protocols/oauth2/web-server).

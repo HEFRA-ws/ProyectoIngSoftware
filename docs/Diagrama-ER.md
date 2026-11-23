@@ -23,6 +23,7 @@ erDiagram
     string email UK
     string name
     string password
+    string googleSub UK
     string role
   }
   EVENTO {
@@ -129,6 +130,8 @@ erDiagram
   }
 ```
 
-Colecciones físicas: `users`, `events`, `accidentReports`, `evidence`, `sessions`, `complaints` y `attempts`. Personas, verificación, investigación e historiales son subdocumentos; no son colecciones independientes. `attempts` es almacenamiento técnico del límite de intentos de login y no forma parte del dominio del evento.
+Colecciones físicas: `users`, `events`, `accidentReports`, `evidence`, `sessions`, `complaints`, `attempts` y `oauthStates`. Personas, verificación, investigación e historiales son subdocumentos; no son colecciones independientes. `attempts` limita los intentos de login y `oauthStates` conserva durante cinco minutos el estado, nonce y verificador PKCE del acceso con Google; son colecciones técnicas.
+
+En USUARIO, `password` contiene un hash solo para cuentas locales y `googleSub` el identificador estable solo para cuentas Google. El índice de `googleSub` es único y `sparse`, de modo que permite cuentas locales sin ese campo. Las cuentas nuevas de Google reciben rol Trabajador; no se vinculan cuentas locales automáticamente por coincidencia de correo.
 
 El índice único `accidentReports.eventId` impide crear dos informes para el mismo accidente. La relación Evento-Informe es opcional: primero existe el evento; el informe se crea posteriormente y solo si se verificó como accidente. La validación de esta condición se realiza en la API.

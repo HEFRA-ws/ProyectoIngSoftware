@@ -4,7 +4,7 @@ Versión 1.0. Se conservan los identificadores HU01-HU12 del primer avance y se 
 
 | ID | Historia | Prioridad | Estado |
 | --- | --- | --- | --- |
-| [HU01](HU01.md) | Iniciar sesión | Alta | Implementada; rendimiento pendiente |
+| [HU01](HU01.md) | Iniciar sesión y registro con Google | Alta | Implementada; pruebas de carga pendientes |
 | [HU02](HU02.md) | Registrar accidente o incidente | Alta | Implementada |
 | [HU03](HU03.md) | Registrar personas involucradas | Alta | Implementada |
 | [HU04](HU04.md) | Adjuntar evidencia al evento | Media | Implementada; antivirus pendiente |

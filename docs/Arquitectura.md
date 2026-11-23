@@ -16,7 +16,7 @@ flowchart LR
     S --> M --> R
   end
   subgraph Atlas["MongoDB Atlas (cluster M0)"]
-    DB[("Base vigia<br/>users, sessions, events,<br/>accidentReports, evidence,<br/>complaints, attempts")]
+    DB[("Base vigia<br/>users, sessions, events,<br/>accidentReports, evidence,<br/>complaints, attempts, oauthStates")]
   end
   subgraph GitHub
     G["Repositorio<br/>HEFRA-ws/ProyectoIngSoftware"]
@@ -24,6 +24,10 @@ flowchart LR
     G --> CI
   end
   U -- "HTTPS: páginas y JSON" --> S
+  O["Google Identity<br/>OpenID Connect"]
+  U -- "Elegir cuenta de Google" --> O
+  O -- "Código de autorización" --> S
+  S -- "Canje y validación de identidad" --> O
   R -- "Driver oficial MongoDB<br/>MONGODB_URI privada" --> DB
   G -- "Despliegue del commit en main" --> S
 ```
@@ -39,17 +43,19 @@ flowchart TB
   C["lib/complaints.js<br/>quejas y reclamos con plazo de respuesta"]
   D["lib/migrations.js<br/>migración reports → events"]
   E["lib/demo-data.js<br/>precarga ficticia y reparación acotada de ejemplos"]
+  F["lib/google-auth.js<br/>registro Trabajador e inicio con Google"]
   A --> B
   A --> C
   A --> D
   A --> E
+  A --> F
 ```
 
 ## Colecciones y responsabilidades
 
 | Colección | Información | Control |
 | --- | --- | --- |
-| users | Cuenta, hash de contraseña y rol | Autenticación |
+| users | Cuenta, rol y hash de contraseña local o identificador Google | Autenticación |
 | sessions | Hash del token, usuario y expiración | Cookie HttpOnly y TTL |
 | events | Declaración, actividad, personas, verificación, investigación, acciones correctivas, cierre e historial | Propietario, rol y versión |
 | accidentReports | Documento interno, evento asociado, autor, gravedad, datos verificados y estado propio | Un informe por accidente; solo SST edita |
@@ -107,6 +113,9 @@ El propietario de un evento puede consultar el informe asociado, incluso en borr
 
 | Método | Ruta | Operación |
 | --- | --- | --- |
+| GET | /api/auth/config | Disponibilidad de Google, sin secretos |
+| GET | /auth/google | Iniciar autorización de Google |
+| GET | /auth/google/callback | Validar identidad, registrar Trabajador si es nuevo y crear sesión |
 | GET / POST | /api/events | Consultar o registrar evento |
 | PATCH | /api/events/:id | Verificar con acción classify o investigar con acción investigate |
 | GET / POST | /api/events/:id/evidence | Consultar o adjuntar evidencia |

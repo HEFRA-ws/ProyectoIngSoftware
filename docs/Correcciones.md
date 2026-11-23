@@ -43,3 +43,6 @@ Commits funcionales: b13cf20 para la separación y migración; dd9bb47 para veri
 - La investigación de un caso cerrado se muestra en consulta y el indicador de investigaciones abiertas excluye los casos Cerrados.
 - Los ejemplos antiguos no reciben una verificación inventada. La reparación acotada de una fecha automática inválida conserva una entrada de historial.
 - Se conserva la evidencia de pruebas aportada por el equipo y se distingue su versión de las regresiones automatizadas finales.
+
+- Revisión final: registro e inicio con Google activados y probados en Render; enlace de privacidad público. La interfaz nombra el botón «Iniciar sesión con Google» y aclara la creación automática de una cuenta Trabajador.
+- Error detectado en QA: el vencimiento de quejas radicadas de noche usaba días de UTC. Se corrigió el cálculo para Colombia y se añadieron regresiones de cambio de día; no se reescriben plazos históricos.

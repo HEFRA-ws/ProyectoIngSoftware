@@ -32,7 +32,7 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 
 ## Funcionalidades actuales
 
-- Inicio de sesión con correo y contraseña, sesiones de ocho horas y permisos verificados en el servidor.
+- Inicio de sesión con correo y contraseña para cuentas existentes. Registro e inicio con Google: las cuentas nuevas se crean como Trabajador. Sesiones de ocho horas y permisos verificados en el servidor.
 - Registro inicial de accidentes e incidentes por el trabajador, con código, actividad y personas involucradas. SST verifica, investiga y gestiona el seguimiento.
 - Carga y descarga autorizada de PNG, JPG y PDF, hasta 2 MB por archivo y cinco adjuntos por reporte.
 - Consulta y búsqueda por código, título y área; filtros por tipo y estado.
@@ -41,7 +41,7 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 - Acciones correctivas con responsable, fecha límite, estado, historial y descripción de evidencia; SST puede cerrar el caso cuando todas estén completadas. Para accidentes también se exige el informe interno Emitido; no se admiten nuevos adjuntos en un evento cerrado.
 - Historial de cambios y resumen básico calculado con los datos visibles para cada rol.
 
-Pendientes: carga de archivos como evidencia de acciones, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El registro e inicio con Google están implementados como integración opcional; requieren configurar credenciales OAuth para habilitarlos en cada entorno. Consulta [la guía de Google](docs/Google-Auth.md).
+Pendientes: carga de archivos como evidencia de acciones, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El registro e inicio con Google están habilitados en la web pública; para otra instalación requieren configurar sus variables OAuth. No existe un formulario público de registro con contraseña. Consulta [la guía de Google](docs/Google-Auth.md).
 
 ## Guía de instalación en un computador nuevo
 
