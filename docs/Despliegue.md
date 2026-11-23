@@ -48,3 +48,7 @@ La aplicación utiliza una sola instancia web y Atlas para datos; no requiere gu
 - [Render: variables de entorno](https://render.com/docs/configure-environment-variables)
 
 El servicio está desplegado. La comprobación anterior solo confirma que responde el endpoint de salud y que carga la pantalla de acceso; no sustituye la verificación funcional. Registrar fecha y responsable cuando se complete la lista de la sección 3.
+
+## Acceso opcional con Google
+
+La aplicación conserva el acceso por correo y contraseña. Para habilitar también el registro y acceso con Google, configura `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `GOOGLE_REDIRECT_URI` según [Google Auth](Google-Auth.md). Las variables se añaden en el servicio existente de Render y requieren un nuevo despliegue; no hace falta modificar las contraseñas de demostración. La URI autorizada de producción es `https://vigia-sst-io46.onrender.com/auth/google/callback`.

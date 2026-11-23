@@ -15,5 +15,5 @@ jobs:
           node-version: '24'
       - run: corepack enable
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: node --check server.js && node --check public/app.js
+      - run: node --check server.js && node --check public/app.js && node --check lib/google-auth.js
       - run: pnpm test

@@ -11,6 +11,9 @@ process.env.DEMO_PASSWORD = "PruebasLocales123!";
 process.env.MONGODB_DB = "vigia_test";
 process.env.DATA_DIR = directory;
 delete process.env.MONGODB_URI;
+delete process.env.GOOGLE_CLIENT_ID;
+delete process.env.GOOGLE_CLIENT_SECRET;
+delete process.env.GOOGLE_REDIRECT_URI;
 const { app, closeDatabase, client } = await import("../server.js");
 const { migrateDemoAdminName, migrateLegacyEvents } = await import(
   "../lib/migrations.js"
@@ -63,6 +66,23 @@ after(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 test("API: autenticación, roles, persistencia, investigación y evidencia", async (t) => {
+  await t.test("Google sin configurar no afecta el login y no publica credenciales", async () => {
+    const { response, result } = await request("/auth/config");
+    assert.equal(response.status, 200);
+    assert.deepEqual(result, { google: false });
+    const start = await fetch(base + "/auth/google", { redirect: "manual" });
+    assert.equal(start.headers.get("location"), "/?authError=google_unavailable");
+  });
+  await t.test("una cuenta Google sin contraseña no provoca error en el login local", async () => {
+    const users = client.db(process.env.MONGODB_DB).collection("users");
+    await users.insertOne({ id: "google-test", name: "Prueba Google",
+      email: "google@example.com", googleSub: "google-test", role: "Trabajador" });
+    const { response, result } = await request("/login", "POST", {
+      email: "google@example.com", password: "cualquier-clave" });
+    assert.equal(response.status, 401);
+    assert.equal(result.error, "Correo o contraseña incorrectos.");
+    await users.deleteOne({ id: "google-test" });
+  });
   await t.test("corrige el nombre demo anterior sin sobrescribir nombres personalizados", async () => {
     const migrationDb = client.db("vigia_demo_name_test");
     const demoUsers = migrationDb.collection("users");

@@ -56,6 +56,11 @@ flowchart TB
 | evidence | Binario y metadatos asociados a eventId | Autorización en carga y descarga |
 | complaints | Queja o reclamo, autor, evento relacionado, plazo y respuesta | Autor y responsables (SST, administrador) |
 | attempts | Intentos fallidos y expiración | Limitación de login |
+| oauthStates | Estado de acceso Google, nonce, verificador PKCE y expiración | Un solo uso, cookie del navegador y TTL de cinco minutos |
+
+### Autenticación opcional con Google
+
+`lib/google-auth.js` incorpora OpenID Connect mediante `google-auth-library`. El servidor canjea el código de autorización y verifica la identidad antes de crear una cuenta Trabajador o abrir la sesión existente. `users.googleSub` tiene un índice único `sparse`, que excluye las cuentas sin ese campo; las cuentas Google no necesitan un hash de contraseña local. No se vinculan cuentas por correo de forma automática. La interfaz consulta `/api/auth/config` y solo ofrece el botón cuando el entorno tiene las variables de configuración válidas; la configuración y el flujo están en [Google Auth](Google-Auth.md). La integración no cambia los permisos operativos del sistema.
 
 Los catálogos iniciales de actividad, mecanismo, lesión y parte afectada se definen en `lib/accident-reports.js` y se entregan a la interfaz mediante la API. Son opciones internas del prototipo, no un catálogo oficial FURAT.
 
