@@ -1,6 +1,6 @@
 # Plan de gestión de la configuración del software
 
-Proyecto: Vigía SST. Versión documental: 0.2. Fecha de preparación: 18 de octubre de 2026. Estado: propuesta inicial para revisión académica.
+Proyecto: Vigía SST. Versión documental: 1.0.0. Fecha de actualización: 22 de noviembre de 2026. Estado: documento actualizado para el despliegue; la verificación funcional completa sigue pendiente (ver Despliegue.md).
 
 ## 1. Propósito y alcance
 
@@ -22,7 +22,7 @@ Los datos de usuarios, sesiones, reportes y adjuntos se almacenan en MongoDB y n
 
 ## 3. Repositorio y líneas base
 
-Repositorio: https://github.com/HEFRA-ws/ProyectoIngSoftware. La rama main contiene la versión revisada disponible. La línea base inicial se identifica con la etiqueta v0.1.0; la presente revisión corresponde a la versión 0.2. Una etiqueta identifica código, no certifica despliegue ni cumplimiento de todos los requisitos.
+Repositorio: https://github.com/HEFRA-ws/ProyectoIngSoftware. La rama main contiene la versión revisada disponible. La línea base inicial se identifica con la etiqueta v0.1.0; la presente revisión corresponde a la versión 1.0.0. Una etiqueta identifica código, no certifica despliegue ni cumplimiento de todos los requisitos.
 
 ## 4. Control de cambios
 
@@ -36,7 +36,7 @@ Node.js 24 y pnpm. Instalar con `pnpm install --frozen-lockfile --ignore-scripts
 
 ## 6. Ambientes y secretos
 
-Desarrollo: MongoDB local persistente o base Atlas independiente. Pruebas: MongoDB aislado temporal. Despliegue: Render y Atlas, pendientes de configurar y verificar. Utilizar bases distintas para pruebas y demostración. Definir `MONGODB_URI` y `DEMO_PASSWORD` como secretos de ejecución; no registrarlos en issues ni commits.
+Desarrollo: MongoDB local persistente o base Atlas independiente. Pruebas: MongoDB aislado temporal. Despliegue: Render y Atlas configurados; el servicio está en línea. La verificación funcional completa sigue pendiente (ver Despliegue.md). Utilizar bases distintas para pruebas y demostración. Definir `MONGODB_URI` y `DEMO_PASSWORD` como secretos de ejecución; no registrarlos en issues ni commits.
 
 ## 7. Verificación de configuración
 

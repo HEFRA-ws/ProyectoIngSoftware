@@ -179,6 +179,10 @@ if (
 
 export const app = express();
 app.disable("x-powered-by");
+// Render termina TLS en un único proxy inverso y envía la IP real en
+// X-Forwarded-For. Confiar en exactamente un salto permite que req.ip sea la
+// IP del cliente (y no la del proxy) sin aceptar cadenas falsificadas.
+if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
 app.use((req, res, next) => {
   res.set({
     "X-Content-Type-Options": "nosniff",
@@ -220,7 +224,7 @@ app.get("/api/health", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   const email = field(req.body.email, "Correo").toLowerCase(),
     password = field(req.body.password, "Contraseña", 256);
-  const key = hashToken((req.socket.remoteAddress || "local") + ":" + email),
+  const key = hashToken((req.ip || "local") + ":" + email),
     prev = await attempts.findOne({ _id: key });
   if (prev && prev.expires > new Date() && prev.count >= 8)
     throw fail(429, "Demasiados intentos. Espera 15 minutos.");
@@ -286,10 +290,8 @@ app.get("/api/events", async (req, res) =>
   ),
 );
 app.post("/api/events", async (req, res) => {
-  if (
-    !["Trabajador", "Profesional SST", "Administrador"].includes(req.user.role)
-  )
-    throw fail(403, "El coordinador tiene acceso de consulta.");
+  if (req.user.role !== "Trabajador")
+    throw fail(403, "Solo el trabajador puede registrar un evento.");
   const b = req.body;
   if (!["Accidente", "Incidente"].includes(b.type))
     throw fail(400, "Tipo de evento inválido.");
@@ -540,8 +542,8 @@ const formats = {
   },
 };
 app.post("/api/events/:id/evidence", async (req, res) => {
-  if (req.user.role === "Coordinador")
-    throw fail(403, "El coordinador tiene acceso de consulta.");
+  if (req.user.role !== "Trabajador")
+    throw fail(403, "Solo el trabajador puede adjuntar evidencia al reporte.");
   const r = await authorizedEvent(req),
     b = req.body,
     format = formats[b.type];

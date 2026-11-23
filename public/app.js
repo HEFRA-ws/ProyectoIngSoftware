@@ -51,6 +51,7 @@ const date = (v) =>
 const badge = (r) =>
   `<span class="badge-state ${r.status === "En investigación" ? "investigation" : ""}">${esc(r.status)}</span>`;
 const professional = () => user?.role === "Profesional SST";
+const canReport = () => user?.role === "Trabajador";
 async function api(path, method = "GET", data) {
   const res = await fetch("/api" + path, {
     method,
@@ -93,6 +94,7 @@ function shell() {
       ["new", "plus", "Registrar evento"],
       ["about", "info", "Acerca del prototipo"],
     ]
+      .filter(([key]) => key !== "new" || canReport())
       .map(
         ([key, i, label]) =>
           `<button data-nav="${key}" class="nav-item ${page === key ? "active" : ""}" ${page === key ? 'aria-current="page"' : ""}>${icon(i)}${label}${key === "events" ? `<span class="nav-count">${events.length}</span>` : ""}</button>`,
@@ -112,7 +114,9 @@ function heading(title, subtitle, action = "") {
   return `<div class="page-heading"><div><h1>${title}</h1><p>${subtitle}</p></div>${action}</div>`;
 }
 const newButton = () =>
-  `<button class="btn btn-primary" data-nav="new">${icon("plus")} Registrar evento</button>`;
+  canReport()
+    ? `<button class="btn btn-primary" data-nav="new">${icon("plus")} Registrar evento</button>`
+    : "";
 function rows(data) {
   return data
     .map(
@@ -124,7 +128,7 @@ function rows(data) {
 function table(data) {
   return data.length
     ? `<div class="table-wrap"><table class="report-table"><thead><tr><th>Evento</th><th>Tipo de evento</th><th>Área</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>${rows(data)}</tbody></table></div>`
-    : `<div class="empty">No hay eventos que coincidan. Puedes registrar un evento nuevo.</div>`;
+    : `<div class="empty">No hay eventos que coincidan.${canReport() ? " Puedes registrar un evento nuevo." : ""}</div>`;
 }
 function dashboard() {
   const total = events.length,
@@ -135,7 +139,24 @@ function dashboard() {
     .flatMap((r) => r.history.map((h) => ({ ...h, id: r.id })))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 4);
-  return `${heading("Resumen general", "Una mirada a la seguridad de tu equipo.", `<div class="date-label">${icon("calendar")}${new Intl.DateTimeFormat("es-CO", { dateStyle: "long", timeZone: "America/Bogota" }).format(new Date())}</div>`)}<section class="welcome"><div><div class="eyebrow">Cada evento cuenta</div><h2>La prevención comienza contigo.</h2><p>Documenta un evento y da el primer paso hacia un entorno más seguro.</p><div class="mt-3">${newButton()}</div></div><div class="welcome-symbol">${icon("shield")}</div></section><section class="metrics" aria-label="Indicadores de eventos">${[
+  const welcome = canReport()
+    ? {
+        eyebrow: "Cada evento cuenta",
+        title: "La prevención comienza contigo.",
+        copy: "Reporta lo ocurrido y SST realizará el seguimiento.",
+      }
+    : professional()
+      ? {
+          eyebrow: "Gestión SST",
+          title: "Atiende los eventos reportados.",
+          copy: "Verifica, investiga y da seguimiento a las acciones correctivas.",
+        }
+      : {
+          eyebrow: "Seguimiento de eventos",
+          title: "Consulta la información registrada.",
+          copy: "Revisa los eventos, informes y evidencias disponibles para tu rol.",
+        };
+  return `${heading("Resumen general", "Una mirada a la seguridad de tu equipo.", `<div class="date-label">${icon("calendar")}${new Intl.DateTimeFormat("es-CO", { dateStyle: "long", timeZone: "America/Bogota" }).format(new Date())}</div>`)}<section class="welcome"><div><div class="eyebrow">${welcome.eyebrow}</div><h2>${welcome.title}</h2><p>${welcome.copy}</p><div class="mt-3">${newButton()}</div></div><div class="welcome-symbol">${icon("shield")}</div></section><section class="metrics" aria-label="Indicadores de eventos">${[
     ["Total de eventos", total, "file", "", "Eventos registrados"],
     ["Por verificar", pending, "clock", "orange", "Pendientes de revisión SST"],
     [
@@ -172,7 +193,12 @@ function dashboard() {
     )}<p class="hint">Información calculada con los eventos visibles para tu rol.</p></div></section><section class="panel"><div class="panel-head"><h2>Actividad reciente</h2></div><div class="panel-body">${activity.length ? activity.map((a) => `<div class="activity"><span class="activity-dot"></span><div><p>${esc(a.text)}</p><small>${esc(a.id)} · ${esc(a.actor)}<br>${date(a.date)}</small></div></div>`).join("") : '<p class="hint">Aún no hay actividad.</p>'}</div></section></div></div><div class="footer-note"><span>Vigía SST · Gestión de accidentes e incidentes laborales</span><span>Prototipo académico · Datos de demostración</span></div>`;
 }
 function eventsPage() {
-  return `${heading("Eventos", "Registra, consulta y sigue el avance de los eventos.", newButton())}<section class="panel"><div class="panel-head"><div><h2>Registro de eventos</h2><p>${events.length} eventos disponibles para tu rol</p></div></div><div class="filters"><input class="form-control" id="search" type="search" placeholder="Buscar por código, título o área" aria-label="Buscar eventos" value="${esc(filter.search)}"><select class="form-select" id="status-filter" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option ${filter.status === "Reportado" ? "selected" : ""}>Reportado</option><option ${filter.status === "En investigación" ? "selected" : ""}>En investigación</option><option ${filter.status === "Cerrado" ? "selected" : ""}>Cerrado</option></select><select class="form-select" id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos los tipos</option><option ${filter.type === "Accidente" ? "selected" : ""}>Accidente</option><option ${filter.type === "Incidente" ? "selected" : ""}>Incidente</option></select></div><div id="report-results">${table(filtered())}</div></section>`;
+  const subtitle = canReport()
+    ? "Registra un evento y consulta el avance de tus reportes."
+    : professional()
+      ? "Revisa, verifica e investiga los eventos reportados."
+      : "Consulta los eventos y su seguimiento en modo de lectura.";
+  return `${heading("Eventos", subtitle, newButton())}<section class="panel"><div class="panel-head"><div><h2>Registro de eventos</h2><p>${events.length} eventos disponibles para tu rol</p></div></div><div class="filters"><input class="form-control" id="search" type="search" placeholder="Buscar por código, título o área" aria-label="Buscar eventos" value="${esc(filter.search)}"><select class="form-select" id="status-filter" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option ${filter.status === "Reportado" ? "selected" : ""}>Reportado</option><option ${filter.status === "En investigación" ? "selected" : ""}>En investigación</option><option ${filter.status === "Cerrado" ? "selected" : ""}>Cerrado</option></select><select class="form-select" id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos los tipos</option><option ${filter.type === "Accidente" ? "selected" : ""}>Accidente</option><option ${filter.type === "Incidente" ? "selected" : ""}>Incidente</option></select></div><div id="report-results">${table(filtered())}</div></section>`;
 }
 function filtered() {
   return events.filter(
@@ -206,7 +232,9 @@ function section(n, title, description) {
   return `<div class="section-title"><span class="section-number">${n}</span><div><h2>${title}</h2><p>${description}</p></div></div>`;
 }
 function newEvent() {
-  return `${heading("Registrar evento", "Comparte los hechos. Tu información ayuda a prevenir.")}<form id="report-form"><section class="panel form-panel">${section("01", "Información del evento", "Los campos de esta sección son obligatorios.")}<div class="form-grid"><div class="full">${input("title", "Título del evento", "text", 'placeholder="Ej. Objeto suelto en zona de circulación"')}</div><div><label class="form-label" for="type">Tipo de evento</label><select class="form-select" id="type" name="type" required><option value="">Selecciona una opción</option><option>Incidente</option><option>Accidente</option></select></div>${input("date", "Fecha y hora del evento", "datetime-local")}<div class="full">${input("activityDescription", "Actividad que estabas realizando", "text", 'placeholder="Ej. Transportaba cajas desde el almacén"')}</div><div><label class="form-label" for="area">Área</label><select class="form-select" name="area" id="area" required><option value="">Selecciona el área</option><option>Producción</option><option>Almacén</option><option>Administración</option><option>Operaciones</option><option>Otra</option></select></div>${input("location", "Lugar específico", "text", 'placeholder="Ej. Pasillo de acceso al almacén"')}<div class="full"><label class="form-label" for="description">Descripción de lo ocurrido</label><textarea class="form-control" id="description" name="description" rows="4" required maxlength="5000" placeholder="Describe qué ocurrió, cómo ocurrió y las condiciones del lugar."></textarea></div></div><div class="divider"></div>${section("02", "Personas involucradas", "Registra afectados o testigos. Un incidente puede reportarse sin personas lesionadas.")}<div id="people"></div><button type="button" class="btn btn-light btn-sm mt-2" data-action="add-person">${icon("plus")} Añadir persona</button><div class="divider"></div>${section("03", "Evidencia", "Podrás adjuntar fotografías o documentos después de guardar el evento.")}<p class="hint">Formatos PNG, JPG y PDF. Máximo 2 MB por archivo y cinco archivos por evento.</p><div class="error" id="form-error" role="alert"></div><div class="form-actions"><button type="button" class="btn btn-light" data-nav="events">Cancelar</button><button class="btn btn-primary" type="submit">${icon("check")} Guardar evento</button></div></section></form>`;
+  if (!canReport())
+    return `<div class="empty">Solo el trabajador puede registrar un evento.</div>`;
+  return `${heading("Registrar evento", "Comparte los hechos. SST realizará la verificación y el seguimiento.")}<form id="report-form"><section class="panel form-panel">${section("01", "Información del evento", "Los campos de esta sección son obligatorios.")}<div class="form-grid"><div class="full">${input("title", "Título del evento", "text", 'placeholder="Ej. Objeto suelto en zona de circulación"')}</div><div><label class="form-label" for="type">Tipo de evento</label><select class="form-select" id="type" name="type" required><option value="">Selecciona una opción</option><option>Incidente</option><option>Accidente</option></select></div>${input("date", "Fecha y hora del evento", "datetime-local")}<div class="full">${input("activityDescription", "Actividad que estabas realizando", "text", 'placeholder="Ej. Transportaba cajas desde el almacén"')}</div><div><label class="form-label" for="area">Área</label><select class="form-select" name="area" id="area" required><option value="">Selecciona el área</option><option>Producción</option><option>Almacén</option><option>Administración</option><option>Operaciones</option><option>Otra</option></select></div>${input("location", "Lugar específico", "text", 'placeholder="Ej. Pasillo de acceso al almacén"')}<div class="full"><label class="form-label" for="description">Descripción de lo ocurrido</label><textarea class="form-control" id="description" name="description" rows="4" required maxlength="5000" placeholder="Describe qué ocurrió, cómo ocurrió y las condiciones del lugar."></textarea></div></div><div class="divider"></div>${section("02", "Personas involucradas", "Registra afectados o testigos. Un incidente puede reportarse sin personas lesionadas.")}<div id="people"></div><button type="button" class="btn btn-light btn-sm mt-2" data-action="add-person">${icon("plus")} Añadir persona</button><div class="divider"></div>${section("03", "Evidencia", "Podrás adjuntar fotografías o documentos después de guardar el evento.")}<p class="hint">Formatos PNG, JPG y PDF. Máximo 2 MB por archivo y cinco archivos por evento.</p><div class="error" id="form-error" role="alert"></div><div class="form-actions"><button type="button" class="btn btn-light" data-nav="events">Cancelar</button><button class="btn btn-primary" type="submit">${icon("check")} Guardar evento</button></div></section></form>`;
 }
 function personRow() {
   return `<div class="person-row"><label class="small-label">Nombre<input class="form-control mt-1" name="person-name" required maxlength="200"></label><label class="small-label">Identificación<input class="form-control mt-1" name="person-document" required maxlength="40"></label><label class="small-label">Contacto<input class="form-control mt-1" name="person-contact" required maxlength="200"></label><label class="small-label">Participación<select class="form-select mt-1" name="person-kind"><option>Afectado</option><option>Testigo</option></select></label><button type="button" class="person-remove" data-action="remove-person" aria-label="Quitar persona">${icon("x")}</button></div>`;
@@ -223,7 +251,7 @@ function detail() {
     .map(([key, value]) => `<div><dt>${key}</dt><dd>${esc(value)}</dd></div>`)
     .join(
       "",
-    )}</dl><h3>Actividad inicial</h3><p class="prose">${esc(r.activityDescription || "No registrada en la versión anterior.")}</p><h3>Descripción inicial</h3><p class="prose">${esc(r.description)}</p><div class="detail-section"><h3>Personas involucradas</h3>${r.people.length ? r.people.map((p) => `<div class="status-note mb-2"><strong>${esc(p.name)}</strong> · ${esc(p.kind)}<br>Identificación: ${esc(p.document)}<br>Contacto: ${esc(p.contact)}</div>`).join("") : '<p class="hint">No se registraron personas involucradas.</p>'}</div></section><section class="panel form-panel"><h2>Evidencia del evento</h2><p class="hint">PNG, JPG o PDF. Hasta 2 MB por archivo, máximo cinco archivos.</p><ul class="file-list">${files.map((f) => `<li><a href="/api/events/${esc(r.id)}/evidence/${esc(f.id)}">${esc(f.name)}</a><span class="muted">${Math.ceil(f.size / 1024)} KB</span></li>`).join("") || '<li class="muted">No hay archivos adjuntos.</li>'}</ul>${user.role !== "Coordinador" ? `<form id="evidence-form"><label for="evidence-file" class="form-label">Seleccionar evidencia</label><input type="file" id="evidence-file" class="form-control" accept="image/png,image/jpeg,application/pdf" required><div class="error mt-2" id="evidence-error" role="alert"></div><button class="btn btn-light btn-sm mt-3" type="submit">${icon("upload")} Adjuntar archivo</button></form>` : ""}</section>${r.verification ? `<section class="panel form-panel"><h2>Verificación SST</h2><p><strong>${esc(r.verification.type)}${r.verification.severity ? " · " + esc(r.verification.severity) : ""}</strong></p><p class="hint">${esc(r.verification.actor)} · ${date(r.verification.date)}</p><p class="prose">${esc(r.verification.notes)}</p></section>` : ""}${professional() ? investigationForm(r) : r.investigation ? investigationRead(r) : ""}${correctiveActionsSection(r)}${accidentReportSection(r)}</div><aside><section class="panel form-panel"><h2>Seguimiento del caso</h2><p class="hint mb-4">Historial de cambios y responsables.</p><ol class="timeline">${r.history.map((h) => `<li><p>${esc(h.text)}</p><small>${esc(h.actor)}<br>${date(h.date)}</small></li>`).join("")}</ol></section><div class="status-note">${r.status === "Cerrado" ? "El caso fue cerrado por SST." : !r.verification ? "El evento está pendiente de verificación por un profesional SST." : "El evento está en investigación."}</div></aside></div>`;
+    )}</dl><h3>Actividad inicial</h3><p class="prose">${esc(r.activityDescription || "No registrada en la versión anterior.")}</p><h3>Descripción inicial</h3><p class="prose">${esc(r.description)}</p><div class="detail-section"><h3>Personas involucradas</h3>${r.people.length ? r.people.map((p) => `<div class="status-note mb-2"><strong>${esc(p.name)}</strong> · ${esc(p.kind)}<br>Identificación: ${esc(p.document)}<br>Contacto: ${esc(p.contact)}</div>`).join("") : '<p class="hint">No se registraron personas involucradas.</p>'}</div></section><section class="panel form-panel"><h2>Evidencia del evento</h2><p class="hint">PNG, JPG o PDF. Hasta 2 MB por archivo, máximo cinco archivos.</p><ul class="file-list">${files.map((f) => `<li><a href="/api/events/${esc(r.id)}/evidence/${esc(f.id)}">${esc(f.name)}</a><span class="muted">${Math.ceil(f.size / 1024)} KB</span></li>`).join("") || '<li class="muted">No hay archivos adjuntos.</li>'}</ul>${user.role === "Trabajador" && r.owner === user.id ? `<form id="evidence-form"><label for="evidence-file" class="form-label">Seleccionar evidencia</label><input type="file" id="evidence-file" class="form-control" accept="image/png,image/jpeg,application/pdf" required><div class="error mt-2" id="evidence-error" role="alert"></div><button class="btn btn-light btn-sm mt-3" type="submit">${icon("upload")} Adjuntar archivo</button></form>` : ""}</section>${r.verification ? `<section class="panel form-panel"><h2>Verificación SST</h2><p><strong>${esc(r.verification.type)}${r.verification.severity ? " · " + esc(r.verification.severity) : ""}</strong></p><p class="hint">${esc(r.verification.actor)} · ${date(r.verification.date)}</p><p class="prose">${esc(r.verification.notes)}</p></section>` : ""}${professional() ? investigationForm(r) : r.investigation ? investigationRead(r) : ""}${correctiveActionsSection(r)}${accidentReportSection(r)}</div><aside><section class="panel form-panel"><h2>Seguimiento del caso</h2><p class="hint mb-4">Historial de cambios y responsables.</p><ol class="timeline">${r.history.map((h) => `<li><p>${esc(h.text)}</p><small>${esc(h.actor)}<br>${date(h.date)}</small></li>`).join("")}</ol></section><div class="status-note">${r.status === "Cerrado" ? "El caso fue cerrado por SST." : !r.verification ? "El evento está pendiente de verificación por un profesional SST." : "El evento está en investigación."}</div></aside></div>`;
 }
 function investigationRead(r) {
   return `<section class="panel form-panel"><h2>Investigación</h2>${[
@@ -361,6 +389,10 @@ function renderContent() {
 }
 async function navigate(next, id) {
   if (busy) return;
+  if (next === "new" && !canReport()) {
+    toast("Solo el trabajador puede registrar eventos.");
+    next = "events";
+  }
   page = next;
   if (id) {
     selectedId = id;

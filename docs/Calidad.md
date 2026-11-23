@@ -17,7 +17,7 @@ La suite contiene **40 casos de comprobación** agrupados en una prueba principa
 | Migración | Conserva código, declaración e historial; cambia referencia de evidencia; repetición idempotente; corrige el nombre del administrador demo |
 | Autenticación | Sesión obligatoria, credenciales incorrectas sin revelar usuarios, cuatro roles sin exponer hashes, cookie HttpOnly, limitación de intentos y cierre de sesión |
 | Evento | Campos, fecha válida no futura, personas, código, actividad e historial |
-| Propiedad y permisos | Aislamiento de eventos e informes; bloqueo de cambios por trabajador, coordinador y administrador |
+| Propiedad y permisos | Solo el trabajador registra eventos y adjunta evidencia; consulta sus casos. SST tramita; coordinador y administrador consultan. Acciones operativas protegidas en API |
 | Verificación | Solo SST; Leve, Grave, Mortal; rechazo de Muy grave y de gravedad en incidentes |
 | Investigación | Verificación previa y persistencia de causas e historial para ambos tipos |
 | Informe | No se crea automáticamente; exige accidente verificado; validación de catálogos y campos |
@@ -27,16 +27,16 @@ La suite contiene **40 casos de comprobación** agrupados en una prueba principa
 | Quejas y reclamos | Radicación con plazo de 15 días hábiles; cada solicitud visible solo para su autor y responsables; respuesta única por SST o administrador |
 | Acciones correctivas | Exigen evento verificado e investigado; solo SST asigna y actualiza; validan responsable, descripción y fecha límite; completar exige evidencia; historial propio de la acción |
 | Cierre del evento | Solo SST cierra; rechazo sin acciones o con acciones pendientes; un evento cerrado no admite investigación, acciones ni cambios de estado |
-| Datos de demostración | Precarga coherente con las reglas de la API (verificación, investigación, acciones y cierre), fechas no futuras, sin duplicados al repetir la carga y sin sobrescribir cambios |
+| Datos de demostración | Precarga coherente con las reglas de la API, fechas no futuras, sin duplicados y sin sobrescribir cambios |
 | Seguridad HTTP | Rechazo de solicitudes de otro origen |
 
 ## 2. Pruebas manuales sobre el producto desplegado
 
-URL probada: `https://vigia-sst-io46.onrender.com`. Commit desplegado: `eb06c78`. Fecha: 22 de noviembre de 2026. Responsable: `PENDIENTE`.
+URLs revisadas: `https://vigia-sst-io46.onrender.com` (despliegue documentado, commit `eb06c78`) y `https://vigia-sst.onrender.com`. El 22 de noviembre de 2026, `/api/health` respondió `{"status":"ok"}` en ambas y cargó la pantalla de acceso. Responsable de la verificación funcional completa: `PENDIENTE`.
 
 | # | Caso | Pasos | Resultado esperado | Resultado |
 | --- | --- | --- | --- | --- |
-| M1 | Salud del servicio | Abrir `/api/health` | Responde `{"status":"ok"}` | ☐ |
+| M1 | Salud del servicio | Abrir `/api/health` | Responde `{"status":"ok"}` | OK · 2026-11-22 |
 | M2 | Login por rol | Iniciar sesión con trabajador, SST, coordinador y administrador | Cada rol entra y ve su menú | ☐ |
 | M3 | Credenciales erróneas | Contraseña incorrecta | Mensaje genérico, sin entrar | ☐ |
 | M4 | Registro de evento | Trabajador registra un accidente ficticio con una persona afectada | Se crea con código `SST-…` y estado Reportado | ☐ |
@@ -44,7 +44,7 @@ URL probada: `https://vigia-sst-io46.onrender.com`. Commit desplegado: `eb06c78`
 | M6 | Verificación e investigación | SST verifica como Leve y registra causas | Estado En investigación e historial actualizado | ☐ |
 | M7 | Informe SST | SST crea borrador y lo emite | Informe Emitido; el evento sigue abierto | ☐ |
 | M8 | Acciones correctivas | SST asigna una acción, la completa con evidencia y cierra el evento | Evento Cerrado; ya no admite cambios | ☐ |
-| M9 | Permisos del coordinador | Coordinador intenta registrar o adjuntar | La interfaz o la API lo impide | ☐ |
+| M9 | Permisos por rol | Solo el trabajador registra y adjunta evidencia; SST tramita; coordinador y administrador consultan | API e interfaz respetan la matriz | ☐ |
 | M10 | Evidencia | Adjuntar un PNG o PDF de menos de 2 MB y descargarlo | Se lista y se descarga | ☐ |
 | M11 | Quejas y reclamos | Trabajador radica; SST responde | Plazo visible y respuesta registrada | ☐ |
 | M12 | Persistencia en Atlas | Reiniciar el servicio en Render y volver a entrar | Los datos creados siguen disponibles | ☐ |
@@ -59,4 +59,4 @@ Issue #1: carga de evidencia del coordinador bloqueada en API y cubierta por reg
 
 ## Límites
 
-Pendientes: carga de 50 usuarios, accesibilidad exhaustiva, antivirus, auditoría externa y respaldo/restauración. El límite de intentos de login combina la IP de origen y el correo; detrás del proxy de Render la IP puede ser compartida, así que ocho intentos fallidos sobre una cuenta demo la bloquean 15 minutos para todos. El cluster M0 de Atlas no incluye copias de seguridad automáticas y el usuario de base de datos de la demo tiene permisos amplios; en un entorno real se limitaría a `readWrite` sobre `vigia` y a las IP del servicio. El plan gratuito de Render suspende el servicio tras un periodo sin tráfico, por lo que la primera solicitud puede tardar cerca de un minuto. No se afirma 99 % de disponibilidad ni tiempos máximos medidos. La existencia del workflow no acredita éxito: comprobar cada ejecución en GitHub Actions.
+Pendientes: carga de 50 usuarios, accesibilidad exhaustiva, antivirus, auditoría externa y respaldo/restauración. En el despliegue registrado en `eb06c78`, la limitación de intentos usa la IP del proxy de Render y puede compartir el bloqueo entre usuarios. La versión actualizada configura `trust proxy` a un salto y calcula la clave con `req.ip`; falta probarla con Node 24 y verificarla después del despliegue. El cluster M0 de Atlas no incluye copias de seguridad automáticas y el usuario de base de datos de la demo tiene permisos amplios; en un entorno real se limitaría a `readWrite` sobre `vigia` y a las IP del servicio. El plan gratuito de Render suspende el servicio tras un periodo sin tráfico, por lo que la primera solicitud puede tardar cerca de un minuto. No se afirma 99 % de disponibilidad ni tiempos máximos medidos. La existencia del workflow no acredita éxito: comprobar cada ejecución en GitHub Actions.

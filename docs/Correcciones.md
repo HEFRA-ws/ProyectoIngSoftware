@@ -5,10 +5,14 @@ Fecha de registro: 18 de octubre de 2026. Origen: retroalimentación del profeso
 | Observación | Cambio implementado | Evidencia |
 | --- | --- | --- |
 | Registrar un suceso y elaborar un informe son cosas distintas | Eventos e informes en colecciones y pantallas diferentes | HU02, HU13; prueba sin informe automático |
-| Trabajador y SST deben registrar accidentes/incidentes | Formulario de evento con actividad y declaración inicial para ambos roles | Prueba de creación con ambos roles |
+| La revisión inicial había permitido registrar a trabajador y SST | Tras contrastarlo con HU02, solo el trabajador crea el reporte; SST verifica, investiga y lo gestiona; coordinación y administración consultan sin alterar eventos | HU02–HU08 y permisos por rol de la API |
 | SST debe verificar antes de elaborar el informe | Confirmación de tipo, observaciones y gravedad para accidente | HU06; rechazo 409 sin verificación |
 | El informe corresponde al accidente | Informe permitido solo en accidente verificado; incidentes mantienen investigación | Rechazo de informe para incidente |
 | Aclarar gravedad del accidente | Opciones internas Leve, Grave y Mortal; selección por SST con soportes | Pruebas de categorías y rechazo de Muy grave |
+
+## Roles y separación de responsabilidades
+
+La observación inicial permitió que trabajador y SST registraran eventos. Al contrastarla con HU02 y separar el reporte de su gestión, la decisión actual es que solo el trabajador crea el evento y aporta evidencia. El Profesional SST se encarga de verificarlo, investigarlo, asignar acciones correctivas y elaborar el informe interno. El coordinador y el administrador consultan los casos; las funciones de administración de usuarios siguen pendientes. El trabajador conserva consulta de sus casos e informes, pero no puede clasificarlos, investigarlos, emitir informes ni cerrarlos.
 
 ## Decisiones propuestas por el equipo
 
