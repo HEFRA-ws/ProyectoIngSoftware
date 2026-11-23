@@ -61,6 +61,8 @@ Se ejecutaron 44 pruebas locales sobre MongoDB aislado. La regresión del cierre
 
 Ampliación de autenticación: 65 pruebas locales pasan después de añadir Google. La revisión de dependencias actualizó `body-parser` a 2.4.0 y `qs` a 6.16.1 dentro de los rangos compatibles de Express; `pnpm audit --prod` no informa vulnerabilidades conocidas en esa ejecución. La pantalla se revisó localmente con configuración ficticia de OAuth y se comprobó el acceso normal de trabajador. Esto acredita la interfaz y la regresión local, no el acceso real a Google, pendiente de configuración y autorización en producción.
 
+La primera ejecución en `main` detectó que las dos suites podían descargar simultáneamente el binario de MongoDB en una máquina nueva (`ENOENT` al renombrar la descarga). Se ajustó el comando de pruebas para ejecutar los archivos secuencialmente; se mantienen todas las comprobaciones y sus bases aisladas.
+
 Revisión visual local final: el contador «En investigación» excluye los eventos Cerrados; en un ejemplo con diez eventos y dos cerrados muestra tres investigaciones abiertas. El detalle de un caso cerrado muestra la investigación en consulta, sin formulario de edición. Evidencias: [resumen local](imagenes/final-13-resumen-local.png), [caso cerrado local](imagenes/final-12-cierre-informe-local.png) y [listado local](imagenes/final-11-listado-local.png). Estas capturas no se atribuyen al despliegue de Render.
 
 Se comprobó también la instalación de dependencias en un directorio nuevo con `pnpm install --frozen-lockfile --ignore-scripts`, usando Node.js 24 y pnpm 11.25.0. La instalación completó 114 paquetes sin modificar el lockfile. Esta comprobación no equivale a probar todos los sistemas operativos desde cero.
