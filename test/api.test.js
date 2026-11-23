@@ -1301,6 +1301,64 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       429,
     );
   });
+  await t.test("precarga datos del afectado y conserva las correcciones sin inventar edad", async () => {
+    const person = { name: "Persona precargada", document: "DOC-DEMO-34",
+      contact: "persona@example.com", kind: "Afectado", age: 34 };
+    for (const age of [-1, 121, 2.5, "34", true, {}]) {
+      assert.equal((await request("/events", "POST", {
+        ...event, people: [{ ...person, age }],
+      }, worker)).response.status, 400);
+    }
+    const created = await request("/events", "POST", {
+      ...event, type: "Accidente", reporterEmail: "correo-falso@example.com",
+      people: [person, { ...person, name: "Testigo ficticio", document: "TESTIGO-0", kind: "Testigo", age: 0 }],
+    }, worker);
+    assert.equal(created.response.status, 201);
+    assert.equal(created.result.reporterEmail, "trabajador@vigia.demo");
+    assert.equal(created.result.people[0].age, 34);
+    assert.equal(created.result.people[1].age, 0);
+    await client.db(process.env.MONGODB_DB).collection("events").updateOne(
+      { id: created.result.id }, { $unset: { reporterEmail: "" } });
+    const legacy = (await request("/events", "GET", null, worker)).result.find(e => e.id === created.result.id);
+    assert.equal(legacy.reporterEmail, "trabajador@vigia.demo");
+    const path = "/events/" + created.result.id;
+    await request(path, "PATCH", { action: "classify", type: "Accidente", severity: "Leve", notes: "Prueba de precarga" }, sst);
+    const { affectedWorker, activityDetail, ...newContent } = internalReport;
+    const report = await request(path + "/report", "POST", newContent, sst);
+    assert.equal(report.response.status, 201);
+    assert.equal(report.result.affectedWorker, person.name);
+    assert.equal(report.result.affectedDocument, person.document);
+    assert.equal(report.result.affectedContact, person.contact);
+    assert.equal(report.result.affectedAge, 34);
+    assert.equal(report.result.activityDetail, event.activityDescription);
+    assert.equal(report.result.eventSnapshot.date, created.result.date);
+    assert.equal(report.result.eventSnapshot.reporterEmail, "trabajador@vigia.demo");
+    for (const age of [121, -1, "34"]) {
+      assert.equal((await request(path + "/report", "PUT", {
+        ...internalReport, affectedAge: age, version: report.result.version,
+      }, sst)).response.status, 400);
+    }
+    const corrected = await request(path + "/report", "PUT", {
+      ...internalReport, affectedWorker: person.name, affectedAge: 36,
+      affectedContact: "corregido@example.com", affectedDocument: "DOC-CORREGIDO", version: report.result.version,
+    }, sst);
+    assert.equal(corrected.response.status, 200);
+    const preserved = await request(path + "/report", "PUT", {
+      ...internalReport, affectedWorker: person.name, version: corrected.result.version,
+    }, sst);
+    assert.equal(preserved.result.affectedAge, 36);
+    assert.equal(preserved.result.affectedContact, "corregido@example.com");
+    const cleared = await request(path + "/report", "PUT", {
+      ...internalReport, affectedWorker: person.name, affectedAge: null,
+      affectedContact: "", affectedDocument: "", version: preserved.result.version,
+    }, sst);
+    assert.equal(cleared.response.status, 200);
+    assert.equal(cleared.result.affectedAge, null);
+    assert.equal(cleared.result.affectedContact, "");
+    const original = (await request("/events", "GET", null, worker)).result.find(e => e.id === created.result.id);
+    assert.equal(original.people[0].age, 34);
+    assert.equal(original.date, created.result.date);
+  });
   await t.test("cerrar sesión invalida el acceso", async () => {
     assert.equal(
       (await request("/logout", "POST", {}, worker)).response.status,

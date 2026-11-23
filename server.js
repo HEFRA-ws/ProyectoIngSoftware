@@ -8,6 +8,7 @@ import { registerAccidentReports } from "./lib/accident-reports.js";
 import { registerComplaints } from "./lib/complaints.js";
 import { seedDemoData } from "./lib/demo-data.js";
 import { registerGoogleAuth } from "./lib/google-auth.js";
+import { optionalAge } from "./lib/person-data.js";
 import { MongoClient } from "mongodb";
 import {
   randomBytes,
@@ -282,16 +283,22 @@ app.post("/api/logout", async (req, res) => {
   });
   res.json({ ok: true });
 });
-app.get("/api/events", async (req, res) =>
-  res.json(
-    await events
+app.get("/api/events", async (req, res) => {
+  const list = await events
       .find(privileged(req.user) ? {} : { owner: req.user.id }, {
         projection: { _id: 0 },
       })
       .sort({ createdAt: -1 })
-      .toArray(),
-  ),
-);
+      .toArray();
+  const owners = await users.find(
+    { id: { $in: [...new Set(list.map((event) => event.owner))] } },
+    { projection: { _id: 0, id: 1, email: 1 } },
+  ).toArray();
+  const emails = new Map(owners.map((owner) => [owner.id, owner.email]));
+  res.json(list.map((event) => ({ ...event,
+    reporterEmail: event.reporterEmail || emails.get(event.owner) || "",
+  })));
+});
 app.post("/api/events", async (req, res) => {
   if (req.user.role !== "Trabajador")
     throw fail(403, "Solo el trabajador puede registrar un evento.");
@@ -308,6 +315,7 @@ app.post("/api/events", async (req, res) => {
     document: field(p.document, "Identificación", 40),
     contact: field(p.contact, "Contacto"),
     kind: field(p.kind, "Tipo"),
+    ...(optionalAge(p.age) !== undefined ? { age: p.age } : {}),
   }));
   if (people.some((p) => !["Afectado", "Testigo"].includes(p.kind)))
     throw fail(400, "Tipo de persona inválido.");
@@ -316,6 +324,7 @@ app.post("/api/events", async (req, res) => {
       id: "SST-" + randomBytes(5).toString("hex").toUpperCase(),
       owner: req.user.id,
       reporter: req.user.name,
+      reporterEmail: req.user.email,
       title: field(b.title, "Título"),
       type: b.type,
       area: field(b.area, "Área"),
@@ -342,6 +351,10 @@ async function authorizedEvent(req) {
   if (!r) throw fail(404, "Evento no encontrado.");
   if (!privileged(req.user) && r.owner !== req.user.id)
     throw fail(403, "No tienes acceso a este evento.");
+  if (!r.reporterEmail) {
+    const owner = await users.findOne({ id: r.owner }, { projection: { _id: 0, email: 1 } });
+    r.reporterEmail = owner?.email || "";
+  }
   return r;
 }
 app.patch("/api/events/:id", async (req, res) => {
