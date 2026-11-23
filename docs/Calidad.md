@@ -10,7 +10,7 @@ Cumplir criterios de aceptación, validar entradas en servidor, aplicar permisos
 
 Ejecución: `pnpm test`. Archivos: `test/api.test.js` y `test/google-auth.test.js`. Cada ejecución levanta bases MongoDB aisladas y servidores en puertos temporales; no utiliza la base de la demostración ni la de Atlas.
 
-La suite contiene **63 casos de comprobación** agrupados en dos pruebas principales; Node Test Runner informa **65 pruebas** contando los grupos. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request. Los 18 casos del grupo Google verifican firmas RSA y el flujo con proveedor simulado; no equivalen a una autorización real en producción.
+La suite contiene **64 casos de comprobación** agrupados en dos pruebas principales; Node Test Runner informa **66 pruebas** contando los grupos. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request. Los 18 casos del grupo Google verifican firmas RSA y el flujo con proveedor simulado; no equivalen a una autorización real en producción.
 
 | Área | Evidencia |
 | --- | --- |
@@ -92,3 +92,9 @@ Evidencias: [registro de las 24 comprobaciones](validacion-redespliegue-final.js
 ## Límites de la validación
 
 Pendientes: carga de 50 usuarios, accesibilidad exhaustiva, antivirus, auditoría externa y respaldo/restauración. En el despliegue registrado en `eb06c78`, la limitación de intentos usa la IP del proxy de Render y puede compartir el bloqueo entre usuarios. La versión actualizada configura `trust proxy` a un salto y calcula la clave con `req.ip`; las pruebas de limitación pasan en Node.js 24; queda pendiente comprobar el aislamiento del límite desde varias IP reales. El cluster M0 de Atlas no incluye copias de seguridad automáticas y el usuario de base de datos de la demo tiene permisos amplios; en un entorno real se limitaría a `readWrite` sobre `vigia` y a las IP del servicio. El plan gratuito de Render suspende el servicio tras un periodo sin tráfico, por lo que la primera solicitud puede tardar cerca de un minuto. No se afirma 99 % de disponibilidad ni tiempos máximos medidos. La existencia del workflow no acredita éxito: comprobar cada ejecución en GitHub Actions.
+
+## Autocompletado de datos guardados
+
+La ampliación de precarga añade una regresión y eleva la suite a **66 pruebas correctas**. Comprueba edades inválidas, edad cero, identidad del autor tomada de la sesión, recuperación del correo para eventos antiguos, precarga de nombre/identificación/contacto/edad/actividad, fecha original conservada y persistencia de las correcciones manuales de SST. Limpiar un dato opcional no lo vuelve a rellenar al editar.
+
+Revisión manual local: el trabajador ve nombre y correo de su cuenta y puede elegir «Usar mis datos» o una persona de sus propios registros. SST recibe esos datos en el informe y se comprobó guardarlo como Borrador. La edad es opcional y solo se reutiliza si estaba guardada. No se presupone que el reportante sea la persona afectada; se añade o selecciona explícitamente. Capturas: [trabajador](imagenes/final-16-precarga-trabajador-local.png) e [informe SST](imagenes/final-17-precarga-sst-local.png). Estas capturas son locales; la comprobación de producción requiere desplegar el commit 591b675 o uno posterior.

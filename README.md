@@ -33,7 +33,8 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 ## Funcionalidades actuales
 
 - Inicio de sesión con correo y contraseña para cuentas existentes. Registro e inicio con Google: las cuentas nuevas se crean como Trabajador. Sesiones de ocho horas y permisos verificados en el servidor.
-- Registro inicial de accidentes e incidentes por el trabajador, con código, actividad y personas involucradas. SST verifica, investiga y gestiona el seguimiento.
+- Registro inicial de accidentes e incidentes por el trabajador, con código, actividad y personas involucradas. Nombre y correo se recuperan de la cuenta; permite reutilizar personas de sus eventos previos, incluida la edad si fue registrada. SST verifica, investiga y gestiona el seguimiento.
+- El informe SST precarga nombre, identificación, contacto, edad disponible, actividad y fecha del evento. Los datos desconocidos quedan vacíos y la verificación profesional se completa aparte.
 - Carga y descarga autorizada de PNG, JPG y PDF, hasta 2 MB por archivo y cinco adjuntos por reporte.
 - Consulta y búsqueda por código, título y área; filtros por tipo y estado.
 - Verificación de SST e investigación de causas. Accidentes clasificados como Leve, Grave o Mortal.

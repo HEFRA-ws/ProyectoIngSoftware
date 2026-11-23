@@ -27,7 +27,7 @@ Fecha de entrega: 22 de noviembre de 2026, antes de las 23:59:59 de Colombia. No
 | Producto desplegado | URL pública HTTPS en Render, sin túnel de Cloudflare |
 | Inicio de sesión funcional | Correo/contraseña de cuentas existentes y registro e inicio con Google comprobados en Render |
 | Base de datos SQL o NoSQL | MongoDB Atlas; los flujos crean y recuperan eventos, informes y adjuntos |
-| Pruebas manuales o automatizadas | 65 pruebas aisladas y 92 comprobaciones HTTP en producción (68 iniciales y 24 tras el redespliegue); [evidencia](Calidad.md) |
+| Pruebas manuales o automatizadas | 66 pruebas aisladas y 92 comprobaciones HTTP en producción (68 iniciales y 24 tras el redespliegue); [evidencia](Calidad.md) |
 | Wiki final y diagramas | Clases, secuencias, E-R, arquitectura, historias, riesgos, GCS y calidad |
 | Diapositivas: producto, arquitectura y retos | Presentación final editable y PDF, nueve diapositivas |
 | Cuatro enlaces para la entrega | Aplicación, repositorio, wiki y presentación en la tabla inicial |
@@ -42,7 +42,7 @@ Las cuentas de demostración aparecen en el README. El equipo debe entregar al p
 
 ## Validación
 
-La revisión local ejecuta 65 pruebas automatizadas (63 casos y dos grupos) con MongoDB aislado. Incluye la integración con Google, habilitada y comprobada con una cuenta real en la URL pública. Las instalaciones nuevas necesitan sus variables OAuth. Calidad conserva los resultados manuales y capturas aportados por el equipo sobre el despliegue, indicando las comprobaciones no ejecutadas. El endpoint de salud comprueba conexión a MongoDB, pero por sí solo no prueba todos los roles ni el flujo completo. Las diapositivas incluyen la arquitectura, las 65 pruebas y los retos de la versión final.
+La revisión local ejecuta 66 pruebas automatizadas (64 casos y dos grupos) con MongoDB aislado. Incluye la integración con Google, habilitada y comprobada con una cuenta real en la URL pública. Las instalaciones nuevas necesitan sus variables OAuth. Calidad conserva los resultados manuales y capturas aportados por el equipo sobre el despliegue, indicando las comprobaciones no ejecutadas. El endpoint de salud comprueba conexión a MongoDB, pero por sí solo no prueba todos los roles ni el flujo completo. Las diapositivas incluyen la arquitectura, las 66 pruebas y los retos de la versión final.
 
 Las comprobaciones del código corregido y las de producción deben registrar su commit y su resultado por separado. La existencia del workflow no equivale a una ejecución exitosa ni a un despliegue automático. Véase [Despliegue](Despliegue.md).
 

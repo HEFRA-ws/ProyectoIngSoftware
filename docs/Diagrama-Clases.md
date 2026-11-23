@@ -15,6 +15,7 @@ classDiagram
   class Evento {
     +String id
     +String owner
+    +String reporterEmail
     +TipoEvento type
     +String activityDescription
     +String description
@@ -28,6 +29,7 @@ classDiagram
     +String name
     +String document
     +String contact
+    +int age
     +String kind
   }
   class VerificacionSST {
@@ -50,6 +52,9 @@ classDiagram
     +String authorId
     +String owner
     +String affectedWorker
+    +String affectedDocument
+    +String affectedContact
+    +int affectedAge
     +String activity
     +String activityDetail
     +String mechanism
@@ -119,3 +124,5 @@ classDiagram
 Reglas: solo el trabajador registra eventos y adjunta evidencia a sus casos abiertos. SST verifica, investiga y elabora informes. Coordinador y administrador consultan los eventos; SST y administrador responden quejas. La gravedad se registra únicamente para accidentes: Leve, Grave o Mortal. Los incidentes conservan investigación sin generar InformeAccidente. El informe pasa de Borrador a Emitido; emitirlo no cierra el evento. El cierre exige acciones completas con evidencia y, en accidentes, el informe Emitido.
 
 En Usuario, el hash de contraseña corresponde a cuentas locales y `googleSub` es opcional para cuentas Google. El primer acceso con Google crea un Trabajador; la sesión y los permisos operativos son los mismos para ambos métodos.
+
+La edad es opcional y corresponde al dato registrado para el evento. Los datos precargados del informe pueden ser revisados por SST sin cambiar la declaración inicial.

@@ -30,6 +30,7 @@ erDiagram
     string id PK
     string owner FK
     string reporter
+    string reporterEmail
     string type
     string activityDescription
     string description
@@ -56,6 +57,7 @@ erDiagram
     string name
     string document
     string contact
+    int age
     string kind
   }
   VERIFICACION_SST {
@@ -86,6 +88,9 @@ erDiagram
     string owner FK
     string authorId FK
     string affectedWorker
+    string affectedDocument
+    string affectedContact
+    int affectedAge
     string activity
     string activityDetail
     string mechanism

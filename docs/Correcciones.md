@@ -46,3 +46,5 @@ Commits funcionales: b13cf20 para la separación y migración; dd9bb47 para veri
 
 - Revisión final: registro e inicio con Google activados y probados en Render; enlace de privacidad público. La interfaz nombra el botón «Iniciar sesión con Google» y aclara la creación automática de una cuenta Trabajador.
 - Error detectado en QA: el vencimiento de quejas radicadas de noche usaba días de UTC. Se corrigió el cálculo para Colombia y se añadieron regresiones de cambio de día; no se reescriben plazos históricos.
+
+- Precarga solicitada por el equipo: nombre y correo de la cuenta en el registro; reutilización de personas de eventos propios; edad opcional validada; fecha, actividad y datos del afectado recuperados para SST. Las correcciones del borrador se conservan y no se inventan datos ausentes.

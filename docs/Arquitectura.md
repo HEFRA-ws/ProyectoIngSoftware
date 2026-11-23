@@ -141,3 +141,7 @@ Las clasificaciones antiguas no se convierten en verificaciones nuevas con grave
 ## Diagramas
 
 [Clases](Diagrama-Clases.md), [secuencias](Diagrama-Secuencias.md) y [entidad-relación](Diagrama-ER.md).
+
+## Reutilización de datos
+
+El servidor toma el nombre y correo del reportante de su sesión. Al consultar eventos antiguos sin correo guardado, recupera el correo de la cuenta propietaria solo después de aplicar los permisos del evento. El trabajador puede reutilizar personas de sus propios casos. La edad es opcional y validada entre 0 y 120 años; Google no proporciona ese dato. `lib/person-data.js` prepara los valores iniciales del informe, que mantiene la fecha original en `eventSnapshot`; SST revisa los datos y completa por separado la descripción verificada y las medidas. Los cambios del borrador no sobrescriben el evento original.
