@@ -1,6 +1,6 @@
 # Plan de sprints y estado del alcance
 
-Versión 0.2. Las fechas y responsables se acuerdan con el equipo; las tareas registran trabajo real y no una entrega formal anterior.
+Versión 1.0. Las fechas y responsables se acuerdan con el equipo; las tareas registran trabajo real y no una entrega formal anterior.
 
 ## Sprint 1: base funcional
 
@@ -9,18 +9,22 @@ Autenticación, registro inicial, personas, evidencia, consulta e investigación
 ## Corrección del prototipo tras revisión
 
 - Separar eventos de informes y migrar datos: issue #9, implementado.
-- Permitir registro de trabajador y SST con actividad realizada: HU02, implementado.
+- Registro inicial por el trabajador con actividad realizada: HU02, implementado. SST verifica e investiga. La regla vigente separa registro y gestión.
 - Verificación y gravedad: HU06, implementado.
 - Informe interno independiente: HU13, implementado con Borrador y Emitido.
 - Actualizar historias y diagramas: issue #11.
 
-## Siguiente sprint
+## Trabajo implementado para la entrega final
+
+Quejas y reclamos, acciones correctivas y cierre condicionado, precarga de datos ficticios, pruebas de integración y despliegue. El 22 de noviembre se corrigieron la exigencia de informe Emitido antes de cerrar accidentes, el bloqueo de adjuntos tras el cierre y las fechas de un ejemplo antiguo.
+
+## Trabajo futuro
 
 - HU08: completar carga de archivos como evidencia y notificaciones de acciones; la asignación, seguimiento y reglas de cierre ya están implementadas.
 - Completar HU05: seguimiento avanzado de acciones y notificaciones.
 - Completar HU07: testimonios específicos.
 - HU12: gestión administrativa de usuarios y auditoría.
-- Configurar y verificar Render y Atlas: issue #6.
+- Render y Atlas están desplegados en https://vigia-sst-io46.onrender.com. La evidencia y las verificaciones por versión se conservan en Calidad y Despliegue.
 
 ## Etapa posterior
 

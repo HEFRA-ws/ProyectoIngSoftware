@@ -1,6 +1,6 @@
 # Diagramas del proyecto
 
-Actualizados para la versión 0.2, con separación entre evento e informe interno SST.
+Actualizados para la versión 1.0, con separación entre evento e informe interno SST, acciones correctivas, cierre y quejas y reclamos.
 
 - [Diagrama de clases](Diagrama-Clases.md)
 - [Diagrama de secuencias](Diagrama-Secuencias.md)

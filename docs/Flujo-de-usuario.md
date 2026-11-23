@@ -4,7 +4,6 @@
 flowchart TD
   A[Iniciar sesión] --> B{Rol}
   B -->|Trabajador| C[Registrar accidente o incidente]
-  B -->|SST| C
   C --> D[Actividad, declaración, fecha y lugar]
   D --> E[Guardar evento y adjuntar evidencia]
   E --> F[Consultar estado e historial del evento]
@@ -17,7 +16,11 @@ flowchart TD
   I -->|Incidente| M[Investigar causas y conclusión]
   I -->|Accidente| M
   B -->|Coordinador| N[Consultar eventos, evidencia e informes]
-  B -->|Administrador| O[Operaciones SST autorizadas]
+  M --> P[Asignar acciones correctivas]
+  P --> Q[Completar acciones con evidencia]
+  Q --> R{Accidente con informe emitido o incidente}
+  R --> S[Cerrar evento]
+  B -->|Administrador| O[Consulta general y respuesta a quejas]
 ```
 
 El trabajador puede consultar el informe asociado a su evento, pero no modificarlo. SST puede investigar un accidente antes o después de elaborar el informe. Emitirlo no equivale a cerrar el caso. La administración completa de usuarios continúa pendiente.

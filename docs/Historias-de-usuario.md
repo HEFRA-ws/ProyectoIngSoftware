@@ -1,6 +1,6 @@
 # Historias de usuario
 
-Versión 0.3. Se conservan los identificadores HU01-HU12 del primer avance y se añaden HU13 para el informe interno independiente y HU14 para quejas y reclamos. Las historias completas están aquí y en la wiki del nuevo repositorio.
+Versión 1.0. Se conservan los identificadores HU01-HU12 del primer avance y se añaden HU13 para el informe interno independiente y HU14 para quejas y reclamos. Las historias completas están aquí y en la wiki del nuevo repositorio.
 
 | ID | Historia | Prioridad | Estado |
 | --- | --- | --- | --- |
