@@ -64,4 +64,6 @@ Los estados caducan en cinco minutos y se eliminan automáticamente mediante un 
 
 Estas pruebas no equivalen a una autorización real con una cuenta de Google. La prueba final sobre Render debe realizarse después de configurar las credenciales: entrar por primera vez, comprobar el rol Trabajador, salir y volver a entrar sin duplicar la cuenta. No publicar el secreto ni capturas que lo contengan.
 
+El 22 de noviembre de 2026 se completó también una autorización real en un entorno local, con creación de cuenta Trabajador y reingreso posterior. La activación en la URL pública sigue pendiente de configurar las variables en la cuenta de Render responsable y de comprobar el despliegue. El estado de publicación de Google y sus requisitos deben revisarse antes de ofrecer el registro a cualquier cuenta externa.
+
 Referencias: [OpenID Connect de Google](https://developers.google.com/identity/openid-connect/openid-connect) y [flujo OAuth para aplicaciones web](https://developers.google.com/identity/protocols/oauth2/web-server).
