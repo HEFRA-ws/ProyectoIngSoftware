@@ -15,6 +15,9 @@ const { app, closeDatabase, client } = await import("../server.js");
 const { migrateDemoAdminName, migrateLegacyEvents } = await import(
   "../lib/migrations.js"
 );
+const { seedDemoData, demoScenarioCount } = await import(
+  "../lib/demo-data.js"
+);
 const server = app.listen(0, "127.0.0.1");
 await new Promise((r) => server.once("listening", r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -135,6 +138,71 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
         0,
       );
       await legacy.dropDatabase();
+    },
+  );
+  await t.test(
+    "precarga datos de demostración coherentes sin duplicarlos",
+    async () => {
+      const seedDb = client.db("vigia_demo_seed_test");
+      const now = Date.now();
+      const first = await seedDemoData(seedDb, "hash-demo", now);
+      assert.equal(first, 2 + demoScenarioCount + 3 + 2);
+      assert.equal(await seedDemoData(seedDb, "hash-demo", now), 0);
+      const users = await seedDb.collection("users").find().toArray();
+      assert.deepEqual(
+        users.map((u) => u.email).sort(),
+        ["trabajador2@vigia.demo", "trabajador3@vigia.demo"],
+      );
+      assert.ok(users.every((u) => u.password === "hash-demo"));
+      const events = await seedDb.collection("events").find().toArray();
+      assert.equal(events.length, demoScenarioCount);
+      for (const e of events) {
+        assert.ok(new Date(e.date).getTime() <= now);
+        assert.ok(e.history.every((h) => new Date(h.date).getTime() <= now));
+        assert.equal(e.history[0].text, "Evento registrado");
+        if (e.status !== "Reportado") assert.ok(e.verification);
+        if (e.correctiveActions.length) assert.ok(e.investigation);
+        if (e.status === "Cerrado")
+          assert.ok(
+            e.correctiveActions.every(
+              (a) => a.status === "Completada" && a.evidence,
+            ),
+          );
+      }
+      const closed = events.find((e) => e.id === "SST-DEMO-004");
+      assert.equal(closed.status, "Cerrado");
+      assert.equal(closed.closedBy, "Daniel Rojas");
+      assert.equal(closed.people[0].kind, "Afectado");
+      const reports = await seedDb
+        .collection("accidentReports")
+        .find()
+        .toArray();
+      assert.equal(reports.length, 3);
+      for (const r of reports) {
+        const event = events.find((e) => e.id === r.eventId);
+        assert.equal(event.type, "Accidente");
+        assert.equal(r.severity, event.verification.severity);
+        assert.equal(r.owner, event.owner);
+      }
+      assert.deepEqual(
+        reports.map((r) => r.status).sort(),
+        ["Borrador", "Emitido", "Emitido"],
+      );
+      const complaints = await seedDb.collection("complaints").find().toArray();
+      assert.deepEqual(
+        complaints.map((c) => c.status).sort(),
+        ["Radicada", "Respondida"],
+      );
+      await seedDb
+        .collection("events")
+        .updateOne({ id: "SST-DEMO-010" }, { $set: { title: "Editado" } });
+      await seedDemoData(seedDb, "hash-demo", now);
+      assert.equal(
+        (await seedDb.collection("events").findOne({ id: "SST-DEMO-010" }))
+          .title,
+        "Editado",
+      );
+      await seedDb.dropDatabase();
     },
   );
   let worker, sst, admin, coordinator, id, privateId, fileId, complaintId;
