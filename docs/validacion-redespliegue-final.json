@@ -1,0 +1,158 @@
+{
+  "url": "https://vigia-sst-io46.onrender.com",
+  "startedAt": "2026-11-23T04:22:32.645Z",
+  "expectedCommit": "9fe790f",
+  "checks": [
+    {
+      "label": "Frontend publicado",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Google habilitado",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "MongoDB disponible",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Acceso worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Acceso other",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Acceso sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Acceso coordinator",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Acceso admin",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Casos conservados tras redespliegue",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Adjunto conservado SST-0626B0C900",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Adjunto conservado SST-D0D6D00463",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Informe conservado",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Radicar reclamo ficticio",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Respuesta prohibida a worker",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Respuesta prohibida a coordinator",
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    {
+      "label": "Privacidad del reclamo",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Respuesta SST al reclamo ficticio",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Impedir segunda respuesta",
+      "status": 409,
+      "expected": 409,
+      "ok": true
+    },
+    {
+      "label": "Autor consulta la respuesta",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Salir worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Salir other",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Salir sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Salir coordinator",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Salir admin",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    }
+  ],
+  "frontendMatchesMain": true,
+  "complaintId": "QR-7E65CEA0",
+  "createdAt": "2026-11-23T04:22:35.380Z",
+  "dueDate": "2026-12-12T04:22:35.380Z",
+  "localDueWeekday": "viernes",
+  "success": true,
+  "finishedAt": "2026-11-23T04:22:37.842Z"
+}

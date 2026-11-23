@@ -1,6 +1,6 @@
 # Despliegue en Render y MongoDB Atlas
 
-Último despliegue verificado: 22 de noviembre de 2026 en https://vigia-sst-io46.onrender.com (commit 0612796), región Virginia, base en MongoDB Atlas. Se completaron 68 comprobaciones HTTP sobre ese despliegue y un acceso real con Google; véase [Calidad](Calidad.md). Los cambios posteriores necesitan un nuevo Manual Deploy si Render no está conectado para despliegue automático.
+Último código funcional verificado: 22 de noviembre de 2026, 23:22 de Colombia, en https://vigia-sst-io46.onrender.com (commit 9fe790f), con MongoDB Atlas. La validación acumuló 68 comprobaciones HTTP sobre 0612796 y otras 24 tras el redespliegue de 9fe790f, además del acceso real con Google; véase [Calidad](Calidad.md). Los cambios posteriores que afecten al producto necesitan un nuevo Manual Deploy si Render no está conectado para despliegue automático.
 
 ## 1. MongoDB Atlas
 
@@ -38,6 +38,7 @@ Si la cuenta de Render no puede conectarse a la organización dueña del reposit
 | `GET /api/health` en `vigia-sst-io46.onrender.com` | 2026-11-22 | Respondió `{"status":"ok"}` |
 | Página de acceso oficial | 2026-11-22 | Cargan correo/contraseña y Google; privacidad accesible |
 | Flujos críticos en producción | 2026-11-22 23:09 Colombia | 68 comprobaciones HTTP correctas: roles, evento, informe, adjuntos, acciones y cierre; datos en Atlas |
+| Redespliegue final, persistencia y quejas | 2026-11-22 23:22 Colombia | Otras 24 comprobaciones correctas; frontend actualizado, casos conservados y calendario de Colombia corregido |
 
 La aplicación utiliza una sola instancia web y Atlas para datos; no requiere guardar archivos en el disco efímero de Render. Los adjuntos se almacenan en MongoDB con límites pequeños apropiados al prototipo.
 

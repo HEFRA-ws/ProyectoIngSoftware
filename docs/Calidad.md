@@ -79,7 +79,15 @@ Los casos ficticios `SST-0626B0C900` (Incidente) y `SST-D0D6D00463` (Accidente) 
 
 La [captura del accidente de validación en producción](imagenes/final-14-validacion-produccion.png) muestra el informe Emitido, la acción Completada y el estado Cerrado. Los nombres, el relato y la evidencia corresponden a una simulación académica.
 
-La revisión detectó además un error de calendario en quejas radicadas de noche: el cálculo contaba días de UTC, mientras la interfaz usa Colombia. Se corrigió `responseDeadline` para contar días de Colombia (UTC-5), conservando el plazo interno de 15 días hábiles sin festivos. La regresión cubre domingo y viernes de noche, y lunes de día. La corrección se aplica a las nuevas radicaciones; no modifica los plazos históricos. Su comprobación local no equivale a afirmar que ese cambio ya se desplegó.
+La revisión detectó además un error de calendario en quejas radicadas de noche: el cálculo contaba días de UTC, mientras la interfaz usa Colombia. Se corrigió `responseDeadline` para contar días de Colombia (UTC-5), conservando el plazo interno de 15 días de lunes a viernes, sin calendario de festivos. La regresión cubre domingo y viernes de noche, y lunes de día. La corrección se aplica a las nuevas radicaciones; no modifica los plazos históricos. El cambio se comprobó después en el redespliegue final registrado a continuación.
+
+### Comprobación después del redespliegue final
+
+El 22 de noviembre a las 23:22 de Colombia se completaron **24 comprobaciones HTTP adicionales**, todas correctas, sobre el código funcional de `9fe790f`. El frontend publicado coincide con el del repositorio y muestra «Iniciar sesión con Google»; el reingreso real con Google también funcionó. Los dos casos Cerrados, sus adjuntos y el informe Emitido permanecieron disponibles tras el redespliegue.
+
+El reclamo ficticio `QR-7E65CEA0` verificó radicación, aislamiento, rechazo de respuestas de trabajador y coordinador, respuesta SST y bloqueo de respuesta duplicada. El vencimiento se calculó para viernes en Colombia, confirmando la corrección del calendario en producción. El plazo interno cuenta lunes a viernes y no descuenta festivos. El reclamo quedó Respondido.
+
+Evidencias: [registro de las 24 comprobaciones](validacion-redespliegue-final.json) y [pantalla final de Google en producción](imagenes/final-15-google-produccion.png). En total se conservaron 68 + 24 = **92 comprobaciones HTTP**, además de las 65 pruebas aisladas.
 
 ## Límites de la validación
 
