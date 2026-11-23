@@ -35,7 +35,7 @@ Si la cuenta de Render no puede conectarse a la organización dueña del reposit
 
 | Revisión pública | Fecha | Resultado |
 | --- | --- | --- |
-| `GET /api/health` en `vigia-sst-io46.onrender.com` y `vigia-sst.onrender.com` | 2026-11-22 | Ambas URL respondieron `{"status":"ok"}` |
+| `GET /api/health` en `vigia-sst-io46.onrender.com` | 2026-11-22 | Respondió `{"status":"ok"}` |
 | Página de acceso en ambas URL | 2026-11-22 | El formulario de login cargó |
 | Verificación funcional completa | Pendiente | Falta probar los roles, los flujos de eventos e informes, los adjuntos y la persistencia en Atlas |
 

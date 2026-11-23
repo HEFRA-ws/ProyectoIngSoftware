@@ -32,24 +32,24 @@ La suite contiene **41 casos de comprobación** agrupados en una prueba principa
 
 ## 2. Pruebas manuales sobre el producto desplegado
 
-URLs revisadas: `https://vigia-sst-io46.onrender.com` (despliegue documentado, commit `eb06c78`) y `https://vigia-sst.onrender.com`. El 22 de noviembre de 2026, `/api/health` respondió `{"status":"ok"}` en ambas y cargó la pantalla de acceso. Responsable de la verificación funcional completa: `PENDIENTE`.
+URL oficial probada: `https://vigia-sst-io46.onrender.com` (Render, región Virginia, base en MongoDB Atlas). Fecha: 22 de noviembre de 2026. Responsable: Juan Esteban Aponte. Las pruebas M1–M8 y M12–M14 se ejecutaron sobre el despliegue con datos precargados, antes del ajuste de permisos del PR #12 (solo el trabajador registra eventos y adjunta evidencia), que queda cubierto por las pruebas automatizadas.
 
-| # | Caso | Pasos | Resultado esperado | Resultado |
-| --- | --- | --- | --- | --- |
-| M1 | Salud del servicio | Abrir `/api/health` | Responde `{"status":"ok"}` | OK · 2026-11-22 |
-| M2 | Login por rol | Iniciar sesión con trabajador, SST, coordinador y administrador | Cada rol entra y ve su menú | ☐ |
-| M3 | Credenciales erróneas | Contraseña incorrecta | Mensaje genérico, sin entrar | ☐ |
-| M4 | Registro de evento | Trabajador registra un accidente ficticio con una persona afectada | Se crea con código `SST-…` y estado Reportado | ☐ |
-| M5 | Aislamiento | Un segundo trabajador o el listado del trabajador | Solo aparecen sus propios eventos | ☐ |
-| M6 | Verificación e investigación | SST verifica como Leve y registra causas | Estado En investigación e historial actualizado | ☐ |
-| M7 | Informe SST | SST crea borrador y lo emite | Informe Emitido; el evento sigue abierto | ☐ |
-| M8 | Acciones correctivas | SST asigna una acción, la completa con evidencia y cierra el evento | Evento Cerrado; ya no admite cambios | ☐ |
-| M9 | Permisos por rol | Solo el trabajador registra y adjunta evidencia; SST tramita; coordinador y administrador consultan | API e interfaz respetan la matriz | ☐ |
-| M10 | Evidencia | Adjuntar un PNG o PDF de menos de 2 MB y descargarlo | Se lista y se descarga | ☐ |
-| M11 | Quejas y reclamos | Trabajador radica; SST responde | Plazo visible y respuesta registrada | ☐ |
-| M12 | Persistencia en Atlas | Reiniciar el servicio en Render y volver a entrar | Los datos creados siguen disponibles | ☐ |
-| M13 | Cookie segura | Revisar la cookie `session` en las herramientas del navegador | Marcada `HttpOnly` y `Secure` | ☐ |
-| M14 | Cierre de sesión | Salir y recargar | Vuelve a pedir inicio de sesión | ☐ |
+| # | Caso | Pasos | Resultado esperado | Resultado | Evidencia |
+| --- | --- | --- | --- | --- | --- |
+| M1 | Salud del servicio | Abrir `/api/health` | Responde `{"status":"ok"}` | OK | [final-01](imagenes/final-01-health.png) |
+| M2 | Login por rol | Iniciar sesión con distintas cuentas | Cada rol entra y ve su menú | OK (trabajador, trabajador2, coordinador y SST; administrador no se probó en esta ronda) | [final-05](imagenes/final-05-aislamiento-trabajador2.png), [final-06](imagenes/final-06-coordinador-lista.png) |
+| M3 | Credenciales erróneas | Contraseña incorrecta | Mensaje genérico, sin entrar | OK | [final-02](imagenes/final-02-login-incorrecto.png) |
+| M4 | Registro de evento | Trabajador registra un accidente ficticio con una persona afectada | Se crea con código `SST-…` y estado Reportado | OK (`SST-843F4001AD`) | [final-04](imagenes/final-04-evento-registrado.png) |
+| M5 | Aislamiento | `trabajador2` abre el listado de eventos | Solo aparecen sus propios eventos | OK (2 eventos propios; no ve los de otros trabajadores) | [final-05](imagenes/final-05-aislamiento-trabajador2.png) |
+| M6 | Verificación e investigación | SST verifica como Leve y registra causas | Estado En investigación e historial actualizado | OK | [final-08](imagenes/final-08-verificacion-investigacion.png) |
+| M7 | Informe SST | SST crea borrador y lo emite | Informe Emitido; el evento sigue abierto | No ejecutada en esta ronda; cubierta por pruebas automatizadas y visible en los informes precargados | — |
+| M8 | Acciones correctivas y cierre | SST asigna una acción, la completa con evidencia y cierra el evento | Evento Cerrado; ya no admite cambios | OK | [final-09](imagenes/final-09-acciones-y-cierre.png) |
+| M9 | Permisos por rol | Coordinador intenta registrar un evento | La API lo rechaza | OK ("El coordinador tiene acceso de consulta", versión previa al PR #12) | [final-07](imagenes/final-07-coordinador-bloqueado.png) |
+| M10 | Evidencia | Adjuntar un PNG o PDF de menos de 2 MB y descargarlo | Se lista y se descarga | No ejecutada en esta ronda; cubierta por pruebas automatizadas | — |
+| M11 | Quejas y reclamos | Trabajador radica; SST responde | Plazo visible y respuesta registrada | No ejecutada en esta ronda; cubierta por pruebas automatizadas y datos precargados | — |
+| M12 | Persistencia en Atlas | Registrar un evento, redesplegar el servicio en Render y volver a entrar | Los datos creados siguen disponibles | OK (`SST-843F4001AD` registrado a las 19:00 sigue disponible tras el redespliegue de las 19:49) | [final-06](imagenes/final-06-coordinador-lista.png), [final-10](imagenes/final-10-persistencia.png) |
+| M13 | Cookie segura | Revisar la cookie `session` en las herramientas del navegador | Marcada `HttpOnly` y `Secure` | No ejecutada en esta ronda; `HttpOnly` cubierta por pruebas automatizadas | — |
+| M14 | Cierre de sesión | Salir y volver a entrar con otro rol | Vuelve a pedir inicio de sesión | OK | — |
 
 Capturas de evidencia: `docs/imagenes/` (prefijo `final-`).
 

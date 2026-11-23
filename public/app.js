@@ -101,7 +101,7 @@ function shell() {
       )
       .join(
         "",
-      )}</nav><div class="sidebar-bottom"><div class="sidebar-note">${icon("shield")}<strong>La prevención es de todos</strong>Cada evento es una oportunidad para cuidar a tu equipo.</div><p class="version">VIGÍA SST / PROTOTIPO 0.3</p></div></aside><div class="workspace"><header class="topbar"><div class="breadcrumb">Espacio de trabajo <span>/</span><strong>${labels[page]}</strong></div><div class="user-menu"><span class="avatar">${esc(
+      )}</nav><div class="sidebar-bottom"><div class="sidebar-note">${icon("shield")}<strong>La prevención es de todos</strong>Cada evento es una oportunidad para cuidar a tu equipo.</div><p class="version">VIGÍA SST / VERSIÓN 1.0</p></div></aside><div class="workspace"><header class="topbar"><div class="breadcrumb">Espacio de trabajo <span>/</span><strong>${labels[page]}</strong></div><div class="user-menu"><span class="avatar">${esc(
       user.name
         .split(" ")
         .slice(0, 2)

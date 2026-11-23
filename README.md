@@ -4,7 +4,7 @@ Prototipo académico de una aplicación web para registrar y hacer seguimiento a
 
 Versión actual: 1.0.0.
 
-**Aplicación desplegada:** [vigia-sst.onrender.com](https://vigia-sst.onrender.com) · **Wiki:** [documentación del proyecto](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki) · **Arquitectura:** [docs/Arquitectura.md](docs/Arquitectura.md)
+**Aplicación desplegada:** [vigia-sst-io46.onrender.com](https://vigia-sst-io46.onrender.com) · **Wiki:** [documentación del proyecto](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki) · **Arquitectura:** [docs/Arquitectura.md](docs/Arquitectura.md)
 
 > El servicio usa el plan gratuito de Render: si lleva un rato sin uso, la primera carga puede tardar cerca de un minuto.
 
@@ -117,7 +117,7 @@ En producción (`NODE_ENV=production`) el servidor exige `MONGODB_URI` y no inic
 | Coordinador | coordinador@vigia.demo | Consultar todos los eventos, informes y evidencias; sin cambios operativos |
 | Administrador | admin@vigia.demo | Consulta general y respuesta a quejas; gestión de usuarios pendiente |
 
-Los seis accesos usan el valor de `DEMO_PASSWORD`. Los usuarios se crean únicamente si la colección de usuarios está vacía. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
+Los seis accesos usan el valor de `DEMO_PASSWORD`. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
 
 ### Datos precargados
 

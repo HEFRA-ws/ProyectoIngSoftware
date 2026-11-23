@@ -84,9 +84,9 @@ Verificados contra el código del servidor (`server.js`, `lib/accident-reports.j
 
 | Acción | Trabajador | Profesional SST | Coordinador | Administrador |
 | --- | --- | --- | --- | --- |
-| Registrar evento | Sí | Sí | No | Sí |
+| Registrar evento | Sí | No | No | No |
 | Consultar eventos e informes | Propios | Todos | Todos | Todos |
-| Adjuntar evidencia | Propios | Todos | No | Todos |
+| Adjuntar evidencia | Propios | No | No | No |
 | Verificar e investigar | No | Sí | No | No |
 | Crear, editar y emitir informe | No | Sí | No | No |
 | Asignar/actualizar acciones y cerrar evento | No | Sí | No | No |
