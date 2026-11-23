@@ -41,7 +41,7 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 - Acciones correctivas con responsable, fecha límite, estado, historial y descripción de evidencia; SST puede cerrar el caso cuando todas estén completadas. Para accidentes también se exige el informe interno Emitido; no se admiten nuevos adjuntos en un evento cerrado.
 - Historial de cambios y resumen básico calculado con los datos visibles para cada rol.
 
-Pendientes: carga de archivos como evidencia de acciones, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El inicio con Google también queda fuera de esta versión.
+Pendientes: carga de archivos como evidencia de acciones, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El registro e inicio con Google están implementados como integración opcional; requieren configurar credenciales OAuth para habilitarlos en cada entorno. Consulta [la guía de Google](docs/Google-Auth.md).
 
 ## Guía de instalación en un computador nuevo
 
@@ -137,6 +137,9 @@ Con `DEMO_MODE=true`, el servidor carga datos ficticios (`lib/demo-data.js`): se
 | `DATA_DIR` | Directorio del MongoDB local de desarrollo |
 | `COOKIE_SECURE` | `true` cuando la aplicación se sirve mediante HTTPS |
 | `NODE_ENV` | `production` en el alojamiento |
+| `GOOGLE_CLIENT_ID` | ID del cliente OAuth web; opcional |
+| `GOOGLE_CLIENT_SECRET` | Secreto privado del cliente OAuth; opcional |
+| `GOOGLE_REDIRECT_URI` | URL autorizada terminada en `/auth/google/callback`; opcional |
 
 `.env`, `data/` y `node_modules/` están excluidos de Git. Las credenciales de Atlas se configuran en el servidor, nunca en el JavaScript del navegador.
 
@@ -146,7 +149,7 @@ Con `DEMO_MODE=true`, el servidor carga datos ficticios (`lib/demo-data.js`): se
 pnpm test
 ```
 
-Las pruebas de integración levantan una base MongoDB aislada y un servidor en un puerto temporal. Verifican autenticación, autorización, validaciones, separación de eventos e informes, verificación, investigación y emisión, acciones correctivas y cierre de eventos, quejas y reclamos, adjuntos y cierre de sesión. El flujo de GitHub Actions ejecuta estas comprobaciones en cada push a `main` y en pull requests.
+Las pruebas de integración levantan bases MongoDB aisladas y servidores en puertos temporales. Verifican autenticación, autorización, validaciones, separación de eventos e informes, verificación, investigación y emisión, acciones correctivas y cierre de eventos, quejas y reclamos, adjuntos y cierre de sesión. La suite de Google prueba el registro y valida tokens firmados localmente; sustituye únicamente la comunicación con el proveedor y no acredita un acceso real a Google. El flujo de GitHub Actions ejecuta estas comprobaciones en cada push a `main` y en pull requests.
 
 Consulta [Historias de usuario](docs/Historias-de-usuario.md), [Correcciones](docs/Correcciones.md), [Diagramas](docs/Diagramas.md), [Calidad](docs/Calidad.md), [Riesgos](docs/Riesgos.md), [Gestión de configuración](docs/GCS.md) y [Plan de sprints](docs/Sprints.md).
 

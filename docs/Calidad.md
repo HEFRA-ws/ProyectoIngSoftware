@@ -10,7 +10,7 @@ Cumplir criterios de aceptación, validar entradas en servidor, aplicar permisos
 
 Ejecución: `pnpm test`. Archivo: `test/api.test.js`. Cada ejecución levanta una base MongoDB aislada y un servidor en un puerto temporal; no utiliza la base de la demostración ni la de Atlas.
 
-La suite contiene **43 casos de comprobación** agrupados en una prueba principal; Node Test Runner informa **44 pruebas** contando el grupo. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request.
+La suite contiene **63 casos de comprobación** agrupados en dos pruebas principales; Node Test Runner informa **65 pruebas** contando los grupos. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request. Los 18 casos del grupo Google verifican firmas RSA y el flujo con proveedor simulado; no equivalen a una autorización real en producción.
 
 | Área | Evidencia |
 | --- | --- |
@@ -58,6 +58,8 @@ Capturas de evidencia: `docs/imagenes/` (prefijo `final-`).
 Se ejecutaron 44 pruebas locales sobre MongoDB aislado. La regresión del cierre comprueba el rechazo sin informe, con borrador y la aceptación con informe Emitido. Otra comprobación impide adjuntar después del cierre. La precarga no inventa verificación para el ejemplo antiguo y repara su fecha automática incoherente con historial, sin reescribir verificaciones personalizadas. Estas comprobaciones no sustituyen la verificación del commit desplegado.
 
 ## Defectos y regresión
+
+Ampliación de autenticación: 65 pruebas locales pasan después de añadir Google. La revisión de dependencias actualizó `body-parser` a 2.4.0 y `qs` a 6.16.1 dentro de los rangos compatibles de Express; `pnpm audit --prod` no informa vulnerabilidades conocidas en esa ejecución. La pantalla se revisó localmente con configuración ficticia de OAuth y se comprobó el acceso normal de trabajador. Esto acredita la interfaz y la regresión local, no el acceso real a Google, pendiente de configuración y autorización en producción.
 
 Revisión visual local final: el contador «En investigación» excluye los eventos Cerrados; en un ejemplo con diez eventos y dos cerrados muestra tres investigaciones abiertas. El detalle de un caso cerrado muestra la investigación en consulta, sin formulario de edición. Evidencias: [resumen local](imagenes/final-13-resumen-local.png), [caso cerrado local](imagenes/final-12-cierre-informe-local.png) y [listado local](imagenes/final-11-listado-local.png). Estas capturas no se atribuyen al despliegue de Render.
 

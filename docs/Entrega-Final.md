@@ -27,7 +27,7 @@ Las cuentas de demostración aparecen en el README. El equipo debe entregar al p
 
 ## Validación
 
-La revisión local ejecuta 44 pruebas automatizadas (43 casos y el grupo principal) con MongoDB aislado. Calidad conserva los resultados manuales y capturas aportados por el equipo sobre el despliegue, indicando las comprobaciones no ejecutadas. El endpoint de salud comprueba conexión a MongoDB, pero por sí solo no prueba todos los roles ni el flujo completo.
+La revisión local ejecuta 65 pruebas automatizadas (63 casos y dos grupos) con MongoDB aislado. Incluye la integración opcional con Google, cuya activación y comprobación real dependen de configurar credenciales OAuth. Calidad conserva los resultados manuales y capturas aportados por el equipo sobre el despliegue, indicando las comprobaciones no ejecutadas. El endpoint de salud comprueba conexión a MongoDB, pero por sí solo no prueba todos los roles ni el flujo completo. Las diapositivas conservan la evidencia de las 44 pruebas de la revisión anterior a esta ampliación.
 
 Las comprobaciones del código corregido y las de producción deben registrar su commit y su resultado por separado. La existencia del workflow no equivale a una ejecución exitosa ni a un despliegue automático. Véase [Despliegue](Despliegue.md).
 
