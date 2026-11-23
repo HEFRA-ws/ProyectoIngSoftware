@@ -1,10 +1,10 @@
 # Diagrama de secuencias
 
-Recorrido principal implementado en la versión 0.2. La sesión debe existir antes de las operaciones de escritura.
+Recorrido principal implementado en la versión 1.0. La sesión debe existir antes de las operaciones de escritura.
 
 ```mermaid
 sequenceDiagram
-  actor T as Trabajador o SST
+  actor T as Trabajador
   participant UI as Interfaz web
   participant API as API Express
   participant DB as MongoDB
@@ -57,6 +57,18 @@ sequenceDiagram
   UI->>API: PATCH /api/events/:id con acción investigate
   API->>DB: Guardar investigación e historial del evento
   API-->>UI: Investigación actualizada
+  S->>UI: Asignar acciones y registrar cumplimiento
+  UI->>API: POST actions y PATCH actions/:actionId
+  API->>DB: Guardar acciones, evidencia textual e historial
+  S->>UI: Cerrar evento
+  UI->>API: POST /api/events/:id/close
+  API->>API: Exigir investigación y acciones completas
+  opt Accidente
+    API->>DB: Comprobar informe Emitido
+  end
+  API->>DB: Cerrar con control de versión
+  API-->>UI: Evento Cerrado
+  Note over UI,DB: No se admiten nuevos adjuntos en el evento cerrado
 ```
 
 La API devuelve 403 ante un rol no autorizado, 400 ante campos inválidos y 409 cuando falta verificación, existe un informe duplicado o la versión cambió. La investigación está disponible para ambos tipos de evento y no exige emitir primero un informe.

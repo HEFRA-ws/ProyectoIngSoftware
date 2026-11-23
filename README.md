@@ -4,6 +4,8 @@ Prototipo académico de una aplicación web para registrar y hacer seguimiento a
 
 Versión actual: 1.0.0.
 
+[Enlaces y alcance de la entrega final](docs/Entrega-Final.md).
+
 **Aplicación desplegada:** [vigia-sst-io46.onrender.com](https://vigia-sst-io46.onrender.com) · **Wiki:** [documentación del proyecto](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki) · **Arquitectura:** [docs/Arquitectura.md](docs/Arquitectura.md)
 
 > El servicio usa el plan gratuito de Render: si lleva un rato sin uso, la primera carga puede tardar cerca de un minuto.
@@ -36,7 +38,7 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 - Consulta y búsqueda por código, título y área; filtros por tipo y estado.
 - Verificación de SST e investigación de causas. Accidentes clasificados como Leve, Grave o Mortal.
 - Informe interno del accidente independiente del evento, con campos estructurados, borrador, emisión e historial propio. Los incidentes conservan investigación.
-- Acciones correctivas con responsable, fecha límite, estado, historial y descripción de evidencia; SST puede cerrar el caso cuando todas estén completadas.
+- Acciones correctivas con responsable, fecha límite, estado, historial y descripción de evidencia; SST puede cerrar el caso cuando todas estén completadas. Para accidentes también se exige el informe interno Emitido; no se admiten nuevos adjuntos en un evento cerrado.
 - Historial de cambios y resumen básico calculado con los datos visibles para cada rol.
 
 Pendientes: carga de archivos como evidencia de acciones, notificaciones, estadísticas avanzadas, exportación del informe y administración completa de usuarios. El inicio con Google también queda fuera de esta versión.
@@ -104,7 +106,7 @@ En producción (`NODE_ENV=production`) el servidor exige `MONGODB_URI` y no inic
 | `Configura MONGODB_URI para conectar MongoDB.` | Estás en modo producción o con `DEMO_MODE` distinto de `true`; define `MONGODB_URI` |
 | La primera ejecución se queda descargando | Es la descarga única del binario de MongoDB local; espera o usa una URI de Atlas |
 | `EADDRINUSE: 3000` | Otro programa usa el puerto; cambia `PORT` en `.env` |
-| No funciona el login con la contraseña nueva | Los usuarios demo se crean solo la primera vez; borra la carpeta `data/` (solo en local) y reinicia |
+| No funciona el login con la contraseña nueva | Cambiar `DEMO_PASSWORD` no modifica usuarios existentes. Usa la contraseña inicial de esa base. Para una demostración nueva, detén el servidor y configura otro `DATA_DIR`, conservando los datos anteriores |
 
 ### Accesos de demostración
 
@@ -117,7 +119,7 @@ En producción (`NODE_ENV=production`) el servidor exige `MONGODB_URI` y no inic
 | Coordinador | coordinador@vigia.demo | Consultar todos los eventos, informes y evidencias; sin cambios operativos |
 | Administrador | admin@vigia.demo | Consulta general y respuesta a quejas; gestión de usuarios pendiente |
 
-Los seis accesos usan el valor de `DEMO_PASSWORD`. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
+Las cuatro cuentas base se crean si la colección de usuarios está vacía. La precarga añade trabajador2 y trabajador3 si faltan. Cada cuenta recibe el valor de `DEMO_PASSWORD` vigente al crearla; cambiar esa variable después no modifica sus contraseñas.
 
 ### Datos precargados
 
@@ -150,7 +152,7 @@ Consulta [Historias de usuario](docs/Historias-de-usuario.md), [Correcciones](do
 
 Documentación en [la wiki](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki). Seguimiento en [GitHub Projects](https://github.com/users/HEFRA-ws/projects/2). El documento de GCS se entrega también [en PDF fuera de la wiki](docs/GCS.pdf).
 
-[Diapositivas de la primera demostración, versión 0.1](docs/Presentacion-Vigia-SST.pptx).
+[Diapositivas de la entrega final](docs/Presentacion-Final-Vigia-SST.pptx) y [vista en PDF](docs/Presentacion-Final-Vigia-SST.pdf). Se conserva como referencia histórica la [primera demostración, versión 0.1](docs/Presentacion-Vigia-SST.pptx).
 
 ![Listado independiente de informes SST, versión 0.2](docs/imagenes/informes-v02.png)
 

@@ -1,6 +1,6 @@
 # Diagrama de clases
 
-Modelo de dominio de la versión 0.2. El servidor está implementado con funciones y documentos MongoDB; este diagrama expresa las entidades y sus relaciones, no una jerarquía de clases Java.
+Modelo de dominio de la versión 1.0. El servidor está implementado con funciones y documentos MongoDB; este diagrama expresa las entidades y sus relaciones, no una jerarquía de clases Java.
 
 ```mermaid
 classDiagram
@@ -62,6 +62,25 @@ classDiagram
     +Date createdAt
     +Date issuedAt
   }
+  class AccionCorrectiva {
+    +String id
+    +String description
+    +String responsible
+    +Date dueDate
+    +String status
+    +String evidence
+  }
+  class QuejaReclamo {
+    +String id
+    +String owner
+    +String eventId
+    +String type
+    +String subject
+    +String description
+    +String status
+    +Date dueDate
+    +Object response
+  }
   class Evidencia {
     +String id
     +String eventId
@@ -88,8 +107,12 @@ classDiagram
   Evento "1" *-- "0..1" Investigacion : documenta causas
   Evento "1" --> "0..5" Evidencia : respalda
   Evento "1" --> "0..1" InformeAccidente : solo accidente verificado
+  Evento "1" *-- "0..*" AccionCorrectiva : medidas
+  AccionCorrectiva "1" *-- "1..*" Cambio : historial de la accion
+  Usuario "1" --> "0..*" QuejaReclamo : radica
+  QuejaReclamo "0..*" --> "0..1" Evento : relaciona
   Evento "1" *-- "1..*" Cambio : historial del evento
   InformeAccidente "1" *-- "1..*" Cambio : historial del informe
 ```
 
-Reglas: trabajador y SST registran eventos; SST y administrador verifican y elaboran informes. Coordinador consulta. La gravedad se registra únicamente para accidentes: Leve, Grave o Mortal. Los incidentes conservan investigación sin generar InformeAccidente. El informe pasa de Borrador a Emitido; emitirlo no cierra el evento.
+Reglas: solo el trabajador registra eventos y adjunta evidencia a sus casos abiertos. SST verifica, investiga y elabora informes. Coordinador y administrador consultan los eventos; SST y administrador responden quejas. La gravedad se registra únicamente para accidentes: Leve, Grave o Mortal. Los incidentes conservan investigación sin generar InformeAccidente. El informe pasa de Borrador a Emitido; emitirlo no cierra el evento. El cierre exige acciones completas con evidencia y, en accidentes, el informe Emitido.

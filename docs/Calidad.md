@@ -10,7 +10,7 @@ Cumplir criterios de aceptación, validar entradas en servidor, aplicar permisos
 
 Ejecución: `pnpm test`. Archivo: `test/api.test.js`. Cada ejecución levanta una base MongoDB aislada y un servidor en un puerto temporal; no utiliza la base de la demostración ni la de Atlas.
 
-La suite contiene **41 casos de comprobación** agrupados en una prueba principal; Node Test Runner informa **42 pruebas** contando el grupo. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request.
+La suite contiene **43 casos de comprobación** agrupados en una prueba principal; Node Test Runner informa **44 pruebas** contando el grupo. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request.
 
 | Área | Evidencia |
 | --- | --- |
@@ -26,8 +26,8 @@ La suite contiene **41 casos de comprobación** agrupados en una prueba principa
 | Evidencia | Tamaño y cabecera, metadatos, descarga autorizada y bloqueo al coordinador |
 | Quejas y reclamos | Radicación con plazo de 15 días hábiles; cada solicitud visible solo para su autor y responsables; respuesta única por SST o administrador |
 | Acciones correctivas | Exigen evento verificado e investigado; solo SST asigna y actualiza; validan responsable, descripción y fecha límite; completar exige evidencia; historial propio de la acción |
-| Cierre del evento | Solo SST cierra; rechazo sin acciones o con acciones pendientes; un evento cerrado no admite investigación, acciones ni cambios de estado |
-| Datos de demostración | Precarga coherente con las reglas de la API, fechas no futuras, sin duplicados y sin sobrescribir cambios |
+| Cierre del evento | Solo SST cierra; rechazo sin acciones o con acciones pendientes; un evento cerrado no admite investigación, acciones, nuevos adjuntos ni cambios de estado; los accidentes requieren informe Emitido antes del cierre |
+| Datos de demostración | Precarga coherente con las reglas de la API, fechas no futuras, sin duplicados y sin sobrescribir cambios del usuario; reparación acotada de fecha en un ejemplo antiguo, con registro en historial |
 | Seguridad HTTP | Rechazo de solicitudes de otro origen |
 
 ## 2. Pruebas manuales sobre el producto desplegado
@@ -53,7 +53,15 @@ URL oficial probada: `https://vigia-sst-io46.onrender.com` (Render, región Virg
 
 Capturas de evidencia: `docs/imagenes/` (prefijo `final-`).
 
+## Revisión final del 22 de noviembre de 2026
+
+Se ejecutaron 44 pruebas locales sobre MongoDB aislado. La regresión del cierre comprueba el rechazo sin informe, con borrador y la aceptación con informe Emitido. Otra comprobación impide adjuntar después del cierre. La precarga no inventa verificación para el ejemplo antiguo y repara su fecha automática incoherente con historial, sin reescribir verificaciones personalizadas. Estas comprobaciones no sustituyen la verificación del commit desplegado.
+
 ## Defectos y regresión
+
+Revisión visual local final: el contador «En investigación» excluye los eventos Cerrados; en un ejemplo con diez eventos y dos cerrados muestra tres investigaciones abiertas. El detalle de un caso cerrado muestra la investigación en consulta, sin formulario de edición. Evidencias: [resumen local](imagenes/final-13-resumen-local.png), [caso cerrado local](imagenes/final-12-cierre-informe-local.png) y [listado local](imagenes/final-11-listado-local.png). Estas capturas no se atribuyen al despliegue de Render.
+
+Se comprobó también la instalación de dependencias en un directorio nuevo con `pnpm install --frozen-lockfile --ignore-scripts`, usando Node.js 24 y pnpm 11.25.0. La instalación completó 114 paquetes sin modificar el lockfile. Esta comprobación no equivale a probar todos los sistemas operativos desde cero.
 
 Issue #1: carga de evidencia del coordinador bloqueada en API y cubierta por regresión. Se conservan las pruebas negativas al añadir el informe independiente, las acciones correctivas y las quejas.
 

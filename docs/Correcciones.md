@@ -34,3 +34,12 @@ Las categorías sirven al diseño del prototipo y la gravedad se registra por el
 - [Issue #11: documentación](https://github.com/HEFRA-ws/ProyectoIngSoftware/issues/11).
 
 Commits funcionales: b13cf20 para la separación y migración; dd9bb47 para verificación e informe. Las pruebas y su resultado están descritos en Calidad.
+
+## Ajustes finales del 22 de noviembre de 2026
+
+- Regla de roles confirmada por el equipo: solo el trabajador registra y adjunta evidencia. SST verifica, investiga, elabora informes y gestiona acciones y cierre. Se corrigieron las tablas y los diagramas que conservaban permisos anteriores.
+- Se impide cerrar un accidente sin informe interno Emitido. El cierre de incidentes no exige este informe.
+- Se rechazan nuevos adjuntos después del cierre, tanto en la interfaz como en la API.
+- La investigación de un caso cerrado se muestra en consulta y el indicador de investigaciones abiertas excluye los casos Cerrados.
+- Los ejemplos antiguos no reciben una verificación inventada. La reparación acotada de una fecha automática inválida conserva una entrada de historial.
+- Se conserva la evidencia de pruebas aportada por el equipo y se distingue su versión de las regresiones automatizadas finales.

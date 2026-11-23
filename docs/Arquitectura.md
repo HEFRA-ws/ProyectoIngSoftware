@@ -38,9 +38,11 @@ flowchart TB
   B["lib/accident-reports.js<br/>catálogos e informe interno SST"]
   C["lib/complaints.js<br/>quejas y reclamos con plazo de respuesta"]
   D["lib/migrations.js<br/>migración reports → events"]
+  E["lib/demo-data.js<br/>precarga ficticia y reparación acotada de ejemplos"]
   A --> B
   A --> C
   A --> D
+  A --> E
 ```
 
 ## Colecciones y responsabilidades
@@ -74,7 +76,7 @@ stateDiagram-v2
   }
 ```
 
-Cada acción correctiva conserva responsable, fecha límite, estado y un historial propio. La evidencia se registra como descripción o referencia; adjuntar archivos de soporte continúa pendiente. El cierre exige un evento verificado e investigado, al menos una acción y todas las acciones completadas con evidencia. Solo SST puede asignarlas, actualizarlas o cerrar el evento.
+Cada acción correctiva conserva responsable, fecha límite, estado y un historial propio. La evidencia se registra como descripción o referencia; adjuntar archivos de soporte continúa pendiente. El cierre exige un evento verificado e investigado, al menos una acción y todas las acciones completadas con evidencia. Solo SST puede asignarlas, actualizarlas o cerrar el evento. Para cerrar un accidente también se exige su informe interno Emitido. Un incidente no necesita ese informe. La API rechaza nuevos adjuntos en eventos cerrados.
 
 El estado del informe no sustituye al del evento. Emitirlo no cierra el caso. Un incidente puede investigarse, pero no genera informe de accidente. No hay integración con ARL, FURAT, firma digital ni exportación PDF de este informe todavía.
 
@@ -86,7 +88,7 @@ Verificados contra el código del servidor (`server.js`, `lib/accident-reports.j
 | --- | --- | --- | --- | --- |
 | Registrar evento | Sí | No | No | No |
 | Consultar eventos e informes | Propios | Todos | Todos | Todos |
-| Adjuntar evidencia | Propios | No | No | No |
+| Adjuntar evidencia | Propios y abiertos | No | No | No |
 | Verificar e investigar | No | Sí | No | No |
 | Crear, editar y emitir informe | No | Sí | No | No |
 | Asignar/actualizar acciones y cerrar evento | No | Sí | No | No |

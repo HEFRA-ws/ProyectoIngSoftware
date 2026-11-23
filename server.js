@@ -116,7 +116,7 @@ if (process.env.DEMO_MODE === "true" && !(await users.findOne({}))) {
         "002",
         "Accidente",
         "Producción",
-        "En investigación",
+        "Reportado",
         "Caída al mismo nivel",
       ],
       [
@@ -508,6 +508,11 @@ app.post("/api/events/:id/close", async (req, res) => {
   const actions = event.correctiveActions || [];
   if (!actions.length || actions.some((action) => action.status !== "Completada" || !action.evidence))
     throw fail(409, "Completa todas las acciones y registra su evidencia antes del cierre.");
+  if (
+    event.type === "Accidente" &&
+    !(await accidentReports.findOne({ eventId: event.id, status: "Emitido" }))
+  )
+    throw fail(409, "Emite el informe interno del accidente antes de cerrar el evento.");
   if (event.status === "Cerrado")
     throw fail(409, "El evento ya está cerrado.");
   const now = new Date().toISOString();
@@ -547,6 +552,8 @@ app.post("/api/events/:id/evidence", async (req, res) => {
   const r = await authorizedEvent(req),
     b = req.body,
     format = formats[b.type];
+  if (r.status === "Cerrado")
+    throw fail(409, "No puedes adjuntar evidencia a un evento cerrado.");
   if (!format || typeof b.content !== "string")
     throw fail(400, "Solo se permiten PNG, JPG y PDF.");
   const bytes = Buffer.from(b.content, "base64");
