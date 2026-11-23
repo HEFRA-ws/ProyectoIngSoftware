@@ -106,11 +106,19 @@ En producción (`NODE_ENV=production`) el servidor exige `MONGODB_URI` y no inic
 | Rol | Correo | Permiso principal |
 | --- | --- | --- |
 | Trabajador | trabajador@vigia.demo | Registrar y consultar sus eventos e informes asociados |
+| Trabajador | trabajador2@vigia.demo | Segundo trabajador de ejemplo (Jorge Castillo) |
+| Trabajador | trabajador3@vigia.demo | Tercer trabajador de ejemplo (Marcela Ortiz) |
 | Profesional SST | sst@vigia.demo | Registrar, verificar e investigar eventos; elaborar informes |
 | Coordinador | coordinador@vigia.demo | Consultar todos los eventos, informes y evidencia |
 | Administrador | admin@vigia.demo | Acceso operativo a los eventos; gestión de usuarios pendiente |
 
-Los cuatro accesos usan el valor de `DEMO_PASSWORD`. Los usuarios se crean únicamente si la colección de usuarios está vacía. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
+Todos los accesos usan el valor de `DEMO_PASSWORD`. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
+
+### Datos precargados
+
+Con `DEMO_MODE=true`, al iniciar el servidor se cargan datos ficticios para la demostración (`lib/demo-data.js`): seis cuentas, diez eventos en distintos estados (reportados, en investigación y cerrados), personas afectadas y testigos, acciones correctivas pendientes, en curso y completadas, tres informes SST (borrador y emitidos) y dos quejas o reclamos (uno radicado y uno respondido). Todos los nombres, documentos (`CC-DEMO-…`) y casos son inventados.
+
+La carga solo inserta lo que falta: no duplica registros ni sobrescribe cambios hechos desde la aplicación. Si se borra la base, se vuelve a crear completa en el siguiente arranque.
 
 ## Variables de entorno
 

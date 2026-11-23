@@ -10,7 +10,7 @@ Cumplir criterios de aceptación, validar entradas en servidor, aplicar permisos
 
 Ejecución: `pnpm test`. Archivo: `test/api.test.js`. Cada ejecución levanta una base MongoDB aislada y un servidor en un puerto temporal; no utiliza la base de la demostración ni la de Atlas.
 
-La suite contiene **39 casos de comprobación** agrupados en una prueba principal; Node Test Runner informa **40 pruebas** contando el grupo. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request.
+La suite contiene **40 casos de comprobación** agrupados en una prueba principal; Node Test Runner informa **41 pruebas** contando el grupo. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request.
 
 | Área | Evidencia |
 | --- | --- |
@@ -27,6 +27,7 @@ La suite contiene **39 casos de comprobación** agrupados en una prueba principa
 | Quejas y reclamos | Radicación con plazo de 15 días hábiles; cada solicitud visible solo para su autor y responsables; respuesta única por SST o administrador |
 | Acciones correctivas | Exigen evento verificado e investigado; solo SST asigna y actualiza; validan responsable, descripción y fecha límite; completar exige evidencia; historial propio de la acción |
 | Cierre del evento | Solo SST cierra; rechazo sin acciones o con acciones pendientes; un evento cerrado no admite investigación, acciones ni cambios de estado |
+| Datos de demostración | Precarga coherente con las reglas de la API (verificación, investigación, acciones y cierre), fechas no futuras, sin duplicados al repetir la carga y sin sobrescribir cambios |
 | Seguridad HTTP | Rechazo de solicitudes de otro origen |
 
 ## 2. Pruebas manuales sobre el producto desplegado
