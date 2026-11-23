@@ -10,7 +10,7 @@ Cumplir criterios de aceptación, validar entradas en servidor, aplicar permisos
 
 Ejecución: `pnpm test`. Archivo: `test/api.test.js`. Cada ejecución levanta una base MongoDB aislada y un servidor en un puerto temporal; no utiliza la base de la demostración ni la de Atlas.
 
-La suite contiene **40 casos de comprobación** agrupados en una prueba principal; Node Test Runner informa **41 pruebas** contando el grupo. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request.
+La suite contiene **41 casos de comprobación** agrupados en una prueba principal; Node Test Runner informa **42 pruebas** contando el grupo. GitHub Actions (`.github/workflows/quality.yml`) ejecuta `node --check` y `pnpm test` en cada push a `main` y en cada pull request.
 
 | Área | Evidencia |
 | --- | --- |
