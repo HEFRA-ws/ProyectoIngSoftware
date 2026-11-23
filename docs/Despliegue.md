@@ -8,7 +8,8 @@ Estado actual: desplegado el 22 de noviembre de 2026 en https://vigia-sst-io46.o
 2. Crear un cluster disponible en el plan seleccionado y una base de demostración.
 3. Crear un usuario de base de datos limitado al proyecto.
 4. Obtener la conexión del controlador Node.js y reemplazar las credenciales localmente o en el panel de Render. No pegarlas en el README, chat, issues o código.
-5. Autorizar en Atlas los rangos de IP saliente que muestre Render para el servicio. Mantener el acceso de red acotado.
+5. En **Network Access** (IP Access List), autorizar las IP de salida que Render muestre para el servicio (**Connect → Outbound**). Mantener la lista acotada; sin esta autorización Atlas puede rechazar la conexión de Render con `ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR`.
+6. Cuando el servicio funcione, limitar el usuario de base de datos a lectura y escritura sobre `vigia`, en lugar de `atlasAdmin`.
 
 ## 2. Render
 
@@ -32,6 +33,12 @@ Si la cuenta de Render no puede conectarse a la organización dueña del reposit
 - Verificar que un trabajador no puede consultar reportes ajenos.
 - Registrar URL, commit y fecha de verificación.
 
+| Revisión pública | Fecha | Resultado |
+| --- | --- | --- |
+| `GET /api/health` en `vigia-sst-io46.onrender.com` y `vigia-sst.onrender.com` | 2026-11-22 | Ambas URL respondieron `{"status":"ok"}` |
+| Página de acceso en ambas URL | 2026-11-22 | El formulario de login cargó |
+| Verificación funcional completa | Pendiente | Falta probar los roles, los flujos de eventos e informes, los adjuntos y la persistencia en Atlas |
+
 La aplicación utiliza una sola instancia web y Atlas para datos; no requiere guardar archivos en el disco efímero de Render. Los adjuntos se almacenan en MongoDB con límites pequeños apropiados al prototipo.
 
 ## Recursos oficiales
@@ -40,4 +47,4 @@ La aplicación utiliza una sola instancia web y Atlas para datos; no requiere gu
 - [Render: despliegue de Node.js y Express](https://render.com/docs/deploy-node-express-app)
 - [Render: variables de entorno](https://render.com/docs/configure-environment-variables)
 
-La publicación todavía requiere que el titular configure las cuentas y los accesos. No se presenta como desplegado hasta comprobar el resultado.
+El servicio está desplegado. La comprobación anterior solo confirma que responde el endpoint de salud y que carga la pantalla de acceso; no sustituye la verificación funcional. Registrar fecha y responsable cuando se complete la lista de la sección 3.

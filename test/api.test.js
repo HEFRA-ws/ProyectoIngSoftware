@@ -233,6 +233,13 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     assert.equal(adminProfile.result.role, "Administrador");
     assert.equal(adminProfile.result.password, undefined);
   });
+  await t.test("solo el trabajador puede registrar eventos", async () => {
+    for (const cookie of [sst, coordinator, admin])
+      assert.equal(
+        (await request("/events", "POST", event, cookie)).response.status,
+        403,
+      );
+  });
   await t.test("valida campos, tipo y fechas futuras", async () => {
     for (const value of [
       { ...event, title: "" },
@@ -270,11 +277,24 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     assert.equal(r.result.people[0].kind, "Testigo");
   });
   await t.test("aísla los eventos de otro usuario", async () => {
-    const own = await request("/events", "POST", event, admin);
-    privateId = own.result.id;
+    privateId = "SST-PRIVADO-TEST";
+    await client.db("vigia_test").collection("events").insertOne({
+      id: privateId,
+      owner: "otro-trabajador",
+      createdAt: new Date().toISOString(),
+      type: "Incidente",
+      status: "Reportado",
+      title: "Evento ficticio privado",
+      people: [],
+      history: [],
+    });
     const r = await request("/events", "GET", null, worker);
     assert.ok(r.result.some((r) => r.id === id));
     assert.ok(!r.result.some((r) => r.id === privateId));
+    for (const cookie of [sst, coordinator, admin]) {
+      const visible = await request("/events", "GET", null, cookie);
+      assert.ok(visible.result.some((event) => event.id === privateId));
+    }
     assert.equal(
       (await request("/events/" + privateId + "/evidence", "GET", null, worker))
         .response.status,
@@ -399,23 +419,25 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     );
   });
   await t.test(
-    "el coordinador no puede adjuntar evidencia aunque conozca la ruta",
-    async () =>
-      assert.equal(
-        (
-          await request(
-            "/events/" + id + "/evidence",
-            "POST",
-            {
-              name: "prueba.pdf",
-              type: "application/pdf",
-              content: Buffer.from("%PDF-1.4").toString("base64"),
-            },
-            coordinator,
-          )
-        ).response.status,
-        403,
-      ),
+    "solo el trabajador puede adjuntar evidencia al evento",
+    async () => {
+      for (const cookie of [sst, coordinator, admin])
+        assert.equal(
+          (
+            await request(
+              "/events/" + id + "/evidence",
+              "POST",
+              {
+                name: "prueba.pdf",
+                type: "application/pdf",
+                content: Buffer.from("%PDF-1.4").toString("base64"),
+              },
+              cookie,
+            )
+          ).response.status,
+          403,
+        );
+    },
   );
   await t.test(
     "adjunta, lista y descarga evidencia con autorización",
@@ -464,34 +486,37 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     immediateMeasures: "Aislar el área y solicitar valoración.",
   };
   await t.test(
-    "trabajador y SST registran eventos sin generar informes",
+    "el trabajador reporta; SST revisa y no registra el evento",
     async () => {
-      for (const cookie of [worker, sst]) {
-        const r = await request(
+      const r = await request(
+        "/events",
+        "POST",
+        { ...event, type: "Accidente" },
+        worker,
+      );
+      assert.equal(r.response.status, 201);
+      assert.equal(r.result.activityDescription, event.activityDescription);
+      accidentId = r.result.id;
+      assert.equal(
+        (
+          await request(
+            "/events/" + accidentId + "/report",
+            "GET",
+            null,
+            worker,
+          )
+        ).result,
+        null,
+      );
+      for (const cookie of [sst, coordinator, admin]) {
+        const denied = await request(
           "/events",
           "POST",
           { ...event, type: "Accidente" },
           cookie,
         );
-        assert.equal(r.response.status, 201);
-        assert.equal(r.result.activityDescription, event.activityDescription);
-        assert.equal(
-          (
-            await request(
-              "/events/" + r.result.id + "/report",
-              "GET",
-              null,
-              cookie,
-            )
-          ).result,
-          null,
-        );
-        if (cookie === worker) accidentId = r.result.id;
+        assert.equal(denied.response.status, 403);
       }
-      assert.equal(
-        (await request("/events", "POST", event, coordinator)).response.status,
-        403,
-      );
     },
   );
   await t.test(
@@ -583,7 +608,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
               "/events",
               "POST",
               { ...event, type: "Accidente" },
-              sst,
+              worker,
             )
           ).result.id;
         const r = await request(
@@ -813,7 +838,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
         "/events",
         "POST",
         { ...event, type: "Accidente" },
-        sst,
+        worker,
       );
       await request(
         "/events/" + created.result.id,
@@ -837,21 +862,19 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
         ).response.status,
         201,
       );
-      assert.equal(
-        (
-          await request(
-            "/events/" + created.result.id + "/report",
-            "GET",
-            null,
-            worker,
-          )
-        ).response.status,
-        403,
+      const ownReport = await request(
+        "/events/" + created.result.id + "/report",
+        "GET",
+        null,
+        worker,
       );
+      assert.equal(ownReport.response.status, 200);
+      assert.ok(ownReport.result);
       const own = (await request("/accident-reports", "GET", null, worker))
         .result;
-      assert.equal(own.length, 1);
-      assert.equal(own[0].eventId, accidentId);
+      assert.equal(own.length, 2);
+      assert.ok(own.some((report) => report.eventId === accidentId));
+      assert.ok(own.some((report) => report.eventId === created.result.id));
       assert.equal(
         (await request("/accident-reports", "GET", null, coordinator)).result
           .length,

@@ -2,7 +2,9 @@
 
 Prototipo académico de una aplicación web para registrar y hacer seguimiento a accidentes e incidentes laborales.
 
-**Aplicación desplegada:** [vigia-sst-io46.onrender.com](https://vigia-sst-io46.onrender.com) · **Wiki:** [documentación del proyecto](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki) · **Arquitectura:** [docs/Arquitectura.md](docs/Arquitectura.md)
+Versión actual: 1.0.0.
+
+**Aplicación desplegada:** [vigia-sst.onrender.com](https://vigia-sst.onrender.com) · **Wiki:** [documentación del proyecto](https://github.com/HEFRA-ws/ProyectoIngSoftware/wiki) · **Arquitectura:** [docs/Arquitectura.md](docs/Arquitectura.md)
 
 > El servicio usa el plan gratuito de Render: si lleva un rato sin uso, la primera carga puede tardar cerca de un minuto.
 
@@ -29,7 +31,7 @@ El proyecto parte del dominio y las historias documentadas en [Avance-1-de-Proye
 ## Funcionalidades actuales
 
 - Inicio de sesión con correo y contraseña, sesiones de ocho horas y permisos verificados en el servidor.
-- Registro de accidentes e incidentes por trabajador y SST, con código, actividad inicial y personas involucradas.
+- Registro inicial de accidentes e incidentes por el trabajador, con código, actividad y personas involucradas. SST verifica, investiga y gestiona el seguimiento.
 - Carga y descarga autorizada de PNG, JPG y PDF, hasta 2 MB por archivo y cinco adjuntos por reporte.
 - Consulta y búsqueda por código, título y área; filtros por tipo y estado.
 - Verificación de SST e investigación de causas. Accidentes clasificados como Leve, Grave o Mortal.
@@ -60,7 +62,9 @@ corepack enable
 pnpm install --frozen-lockfile --ignore-scripts
 ```
 
-Si `pnpm -v` muestra una versión 9 o anterior, ejecuta `corepack prepare pnpm@latest --activate`. En Windows, si `corepack enable` responde con un error de permisos, abre PowerShell como administrador y repite el comando. Si PowerShell bloquea la ejecución de `pnpm`, ejecuta una vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+Si `pnpm -v` muestra una versión 9 o anterior, ejecuta `corepack prepare pnpm@latest --activate`.
+
+**Windows:** si PowerShell no reconoce `pnpm` o `corepack enable` falla por permisos, antepón `corepack` a cada comando; por ejemplo, usa `corepack pnpm install --frozen-lockfile --ignore-scripts` y `corepack pnpm start`. Así no tienes que habilitar Corepack globalmente.
 
 ### 3. Configurar variables de entorno
 
@@ -94,6 +98,7 @@ En producción (`NODE_ENV=production`) el servidor exige `MONGODB_URI` y no inic
 
 | Síntoma | Solución |
 | --- | --- |
+| `pnpm` no se reconoce o Corepack no puede crear enlaces | Usa `corepack pnpm ...` en Windows, como se explica arriba. |
 | `ERR_PNPM_... packages field missing or empty` | Se está usando pnpm 9. Ejecuta `corepack prepare pnpm@latest --activate` y vuelve a abrir la terminal |
 | `Unsupported engine` o errores de sintaxis al iniciar | Instala Node.js 24 LTS |
 | `Configura MONGODB_URI para conectar MongoDB.` | Estás en modo producción o con `DEMO_MODE` distinto de `true`; define `MONGODB_URI` |
@@ -105,20 +110,18 @@ En producción (`NODE_ENV=production`) el servidor exige `MONGODB_URI` y no inic
 
 | Rol | Correo | Permiso principal |
 | --- | --- | --- |
-| Trabajador | trabajador@vigia.demo | Registrar y consultar sus eventos e informes asociados |
-| Trabajador | trabajador2@vigia.demo | Segundo trabajador de ejemplo (Jorge Castillo) |
-| Trabajador | trabajador3@vigia.demo | Tercer trabajador de ejemplo (Marcela Ortiz) |
-| Profesional SST | sst@vigia.demo | Registrar, verificar e investigar eventos; elaborar informes |
-| Coordinador | coordinador@vigia.demo | Consultar todos los eventos, informes y evidencia |
-| Administrador | admin@vigia.demo | Acceso operativo a los eventos; gestión de usuarios pendiente |
+| Trabajador | trabajador@vigia.demo | Registrar eventos, adjuntar su evidencia y consultar solo sus casos |
+| Trabajador | trabajador2@vigia.demo | Segundo trabajador de demostración (Jorge Castillo) |
+| Trabajador | trabajador3@vigia.demo | Tercer trabajador de demostración (Marcela Ortiz) |
+| Profesional SST | sst@vigia.demo | Consultar todos los casos; verificar, investigar, asignar acciones, cerrar y elaborar informes |
+| Coordinador | coordinador@vigia.demo | Consultar todos los eventos, informes y evidencias; sin cambios operativos |
+| Administrador | admin@vigia.demo | Consulta general y respuesta a quejas; gestión de usuarios pendiente |
 
-Todos los accesos usan el valor de `DEMO_PASSWORD`. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
+Los seis accesos usan el valor de `DEMO_PASSWORD`. Los usuarios se crean únicamente si la colección de usuarios está vacía. Cambiar esa variable después no cambia las contraseñas de usuarios existentes.
 
 ### Datos precargados
 
-Con `DEMO_MODE=true`, al iniciar el servidor se cargan datos ficticios para la demostración (`lib/demo-data.js`): seis cuentas, diez eventos en distintos estados (reportados, en investigación y cerrados), personas afectadas y testigos, acciones correctivas pendientes, en curso y completadas, tres informes SST (borrador y emitidos) y dos quejas o reclamos (uno radicado y uno respondido). Todos los nombres, documentos (`CC-DEMO-…`) y casos son inventados.
-
-La carga solo inserta lo que falta: no duplica registros ni sobrescribe cambios hechos desde la aplicación. Si se borra la base, se vuelve a crear completa en el siguiente arranque.
+Con `DEMO_MODE=true`, el servidor carga datos ficticios (`lib/demo-data.js`): seis cuentas, diez eventos en distintos estados, personas afectadas y testigos, acciones correctivas, tres informes SST y dos quejas o reclamos. Los nombres, documentos (`CC-DEMO-…`) y casos son inventados. La carga no duplica registros ni sobrescribe cambios; si se borra la base local, se vuelve a crear al iniciar.
 
 ## Variables de entorno
 
