@@ -27,7 +27,7 @@ Fecha de entrega: 22 de noviembre de 2026, antes de las 23:59:59 de Colombia. No
 | Producto desplegado | URL pública HTTPS en Render, sin túnel de Cloudflare |
 | Inicio de sesión funcional | Correo/contraseña de cuentas existentes y registro e inicio con Google comprobados en Render |
 | Base de datos SQL o NoSQL | MongoDB Atlas; los flujos crean y recuperan eventos, informes y adjuntos |
-| Pruebas manuales o automatizadas | 66 pruebas aisladas y 92 comprobaciones HTTP en producción (68 iniciales y 24 tras el redespliegue); [evidencia](Calidad.md) |
+| Pruebas manuales o automatizadas | 66 pruebas aisladas y 108 comprobaciones HTTP en producción (68 iniciales, 24 tras el redespliegue y 16 de precarga); [evidencia](Calidad.md) |
 | Wiki final y diagramas | Clases, secuencias, E-R, arquitectura, historias, riesgos, GCS y calidad |
 | Diapositivas: producto, arquitectura y retos | Presentación final editable y PDF, nueve diapositivas |
 | Cuatro enlaces para la entrega | Aplicación, repositorio, wiki y presentación en la tabla inicial |

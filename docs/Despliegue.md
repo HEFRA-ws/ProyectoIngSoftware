@@ -53,3 +53,7 @@ Los resultados posteriores y su alcance están registrados en Calidad. El acceso
 ## Acceso opcional con Google
 
 La aplicación conserva el acceso por correo y contraseña. Para habilitar también el registro y acceso con Google, configura `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `GOOGLE_REDIRECT_URI` según [Google Auth](Google-Auth.md). Las variables se añaden en el servicio existente de Render y requieren un nuevo despliegue; no hace falta modificar las contraseñas de demostración. La URI autorizada de producción es `https://vigia-sst-io46.onrender.com/auth/google/callback`.
+
+### Última ampliación verificada
+
+El código funcional de `591b675` (precarga de datos) se verificó el 22 de noviembre a las 23:47 de Colombia en la URL pública, con 16 comprobaciones HTTP correctas. Nombre/correo se recuperan de la cuenta, los eventos previos aportan datos de personas y SST recibe los datos del evento y del afectado. El caso ficticio de validación quedó Cerrado. Los commits posteriores de documentación no requieren redesplegar para aplicar la funcionalidad ya comprobada.

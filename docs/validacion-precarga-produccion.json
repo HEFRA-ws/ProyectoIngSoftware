@@ -1,0 +1,106 @@
+{
+  "url": "https://vigia-sst-io46.onrender.com",
+  "startedAt": "2026-11-23T04:47:07.154Z",
+  "checks": [
+    {
+      "label": "Interfaz de precarga publicada",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Acceso worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Acceso sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Correo de eventos anteriores",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Registrar datos de la persona",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Verificar accidente ficticio",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Precargar datos al crear informe",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Conservar corrección de SST",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Conservar declaración original",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Emitir informe de validación",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Investigar caso ficticio",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Asignar cierre de validación",
+      "status": 201,
+      "expected": 201,
+      "ok": true
+    },
+    {
+      "label": "Completar validación",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Cerrar caso de validación",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Cerrar sesión worker",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    {
+      "label": "Cerrar sesión sst",
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    }
+  ],
+  "caseId": "SST-CD5A9B7D94",
+  "caseStatus": "Cerrado",
+  "success": true,
+  "finishedAt": "2026-11-23T04:47:10.210Z"
+}
