@@ -205,6 +205,38 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       await seedDb.dropDatabase();
     },
   );
+  await t.test("la precarga no inventa verificaciones y repara fechas demo anteriores", async () => {
+    const seedDb = client.db("vigia_demo_dates_test");
+    const now = Date.now();
+    const sample = {
+      id: "SST-DEMO-002",
+      status: "En investigación",
+      date: new Date(now).toISOString(),
+      createdAt: new Date(now).toISOString(),
+      version: 0,
+      history: [{ date: new Date(now).toISOString(), text: "Evento registrado" }],
+    };
+    await seedDb.collection("events").insertOne({ ...sample });
+    await seedDemoData(seedDb, "hash-demo", now);
+    let saved = await seedDb.collection("events").findOne({ id: sample.id });
+    assert.equal(saved.status, "Reportado");
+    assert.equal(saved.verification, undefined);
+    await seedDb.collection("events").updateOne({ id: sample.id }, {
+      $set: { status: "En investigación", verification: {
+        type: "Accidente", severity: "Leve", actor: "Daniel Rojas",
+        notes: "Caída sin lesiones de consideración; se confirma accidente leve.",
+        date: new Date(now - 86400000).toISOString(),
+      } },
+    });
+    await seedDemoData(seedDb, "hash-demo", now);
+    saved = await seedDb.collection("events").findOne({ id: sample.id });
+    assert.ok(Date.parse(saved.verification.date) >= Date.parse(saved.date));
+    assert.match(saved.history.at(-1).text, /corregida/);
+    const version = saved.version;
+    await seedDemoData(seedDb, "hash-demo", now);
+    assert.equal((await seedDb.collection("events").findOne({ id: sample.id })).version, version);
+    await seedDb.dropDatabase();
+  });
   let worker, sst, admin, coordinator, id, privateId, fileId, complaintId;
   await t.test("bloquea consultas sin sesión", async () =>
     assert.equal((await request("/events")).response.status, 401),
@@ -1138,6 +1170,13 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       assert.equal(closed.result.closedBy, "Daniel Rojas");
       assert.ok(closed.result.closedAt);
       assert.equal(
+        (await request(base + "/evidence", "POST", {
+          name: "tardio.png", type: "image/png",
+          content: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString("base64"),
+        }, worker)).response.status,
+        409,
+      );
+      assert.equal(
         closed.result.history.at(-1).text,
         "Evento cerrado tras completar las acciones correctivas",
       );
@@ -1194,6 +1233,23 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
       );
     },
   );
+  await t.test("un accidente solo se cierra con el informe emitido y las acciones completas", async () => {
+    const created = await request("/events", "POST", { ...event, type: "Accidente" }, worker);
+    const base = "/events/" + created.result.id;
+    await request(base, "PATCH", { action: "classify", type: "Accidente", severity: "Leve", notes: "Verificado" }, sst);
+    await request(base, "PATCH", { action: "investigate", immediate: "Piso húmedo", basic: "Falta de señalización", conclusion: "Señalizar" }, sst);
+    const assigned = await request(base + "/actions", "POST", { description: "Señalizar", responsible: "Responsable demo", dueDate: "2026-12-15" }, sst);
+    assert.equal(assigned.response.status, 201);
+    await request(base + "/actions/" + assigned.result.id, "PATCH", { status: "Completada", evidence: "Acta de cumplimiento" }, sst);
+    assert.equal((await request(base + "/close", "POST", {}, sst)).response.status, 409);
+    const draft = await request(base + "/report", "POST", internalReport, sst);
+    assert.equal(draft.response.status, 201);
+    assert.equal((await request(base + "/close", "POST", {}, sst)).response.status, 409);
+    assert.equal((await request(base + "/report/finalize", "POST", { version: draft.result.version }, sst)).response.status, 200);
+    const closed = await request(base + "/close", "POST", {}, sst);
+    assert.equal(closed.response.status, 200);
+    assert.equal(closed.result.status, "Cerrado");
+  });
   await t.test("bloquea solicitudes de otro origen", async () =>
     assert.equal(
       (await request("/events", "POST", event, worker, "https://otro.example"))
