@@ -608,7 +608,7 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
               "/events",
               "POST",
               { ...event, type: "Accidente" },
-              sst,
+              worker,
             )
           ).result.id;
         const r = await request(
