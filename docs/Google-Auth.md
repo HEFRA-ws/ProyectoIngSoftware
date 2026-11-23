@@ -6,6 +6,7 @@ La integración es opcional. El código incluye el botón **Continuar con Google
 
 1. Entrar en [Google Cloud](https://console.cloud.google.com/auth/clients) con la cuenta responsable del proyecto y seleccionar o crear un proyecto.
 2. Configurar Google Auth Platform: nombre de la aplicación `Vigía SST`, correo de soporte y audiencia externa. Si se mantiene en pruebas, añadir los correos que van a probarla en la lista de usuarios de prueba. Completar los avisos o autorizaciones que Google solicite con la persona dueña de la cuenta.
+   En Información de la marca, indicar la página principal `https://vigia-sst-io46.onrender.com` y la privacidad `https://vigia-sst-io46.onrender.com/privacidad.html`. El aviso es público y describe el tratamiento real de los datos del prototipo. Publicar la app en Google y la verificación de marca son pasos distintos; atender los requisitos que muestre Google antes de afirmar que cualquier cuenta puede acceder.
 3. Crear un cliente OAuth de tipo **Aplicación web**. Añadir exactamente esta URI de redirección autorizada para Render:
 
    ```text

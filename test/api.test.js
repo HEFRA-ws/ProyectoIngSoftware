@@ -72,6 +72,9 @@ test("API: autenticación, roles, persistencia, investigación y evidencia", asy
     assert.deepEqual(result, { google: false });
     const start = await fetch(base + "/auth/google", { redirect: "manual" });
     assert.equal(start.headers.get("location"), "/?authError=google_unavailable");
+    const privacy = await fetch(base + "/privacidad.html");
+    assert.equal(privacy.status, 200);
+    assert.match(await privacy.text(), /Privacidad y uso de datos/);
   });
   await t.test("una cuenta Google sin contraseña no provoca error en el login local", async () => {
     const users = client.db(process.env.MONGODB_DB).collection("users");

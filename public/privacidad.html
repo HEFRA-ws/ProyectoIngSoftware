@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacidad | Vigía SST</title>
+    <link rel="stylesheet" href="/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container py-5">
+      <div class="row justify-content-center">
+        <article class="col-lg-8 panel p-4 p-md-5">
+          <a href="/">Volver a Vigía SST</a>
+          <p class="eyebrow mt-4">Proyecto académico</p>
+          <h1>Privacidad y uso de datos</h1>
+          <p class="muted">Actualizado el 22 de noviembre de 2026.</p>
+          <p>Vigía SST es un proyecto académico para registrar y dar seguimiento a accidentes e incidentes laborales ficticios. Lo administra el equipo del repositorio <a href="https://github.com/HEFRA-ws/ProyectoIngSoftware">ProyectoIngSoftware</a>. No ingreses historias clínicas, documentos reales ni información sensible de otras personas.</p>
+
+          <h2 class="h4 mt-4">Acceso con Google</h2>
+          <p>Al elegir «Continuar con Google», Google comunica tu identificador de cuenta, nombre y correo electrónico verificado. Vigía utiliza esos datos para crear una cuenta de trabajador, identificarte cuando vuelves a entrar y asociar tus registros a tu cuenta. Google puede incluir tu foto de perfil en su respuesta; Vigía no la guarda ni la muestra.</p>
+          <p>Vigía no recibe tu contraseña de Google y no solicita acceso a Gmail, Drive, contactos ni archivos. Los permisos solicitados son únicamente <code>openid</code>, <code>email</code> y <code>profile</code>. El acceso con correo y contraseña de las cuentas existentes sigue disponible.</p>
+
+          <h2 class="h4 mt-4">Almacenamiento y acceso</h2>
+          <p>En el despliegue público, Render aloja la aplicación y MongoDB Atlas almacena los datos de las cuentas y del proyecto. En una instalación local se utiliza la base configurada por quien la ejecuta. El equipo con acceso técnico al servidor o a la base puede administrar esos datos.</p>
+          <p>Cada trabajador consulta sus propios eventos. Los roles de SST, coordinador y administrador consultan los eventos e informes según sus permisos, incluido el nombre del autor. Las quejas se muestran a su autor y a los roles responsables de responderlas. Utiliza únicamente información ficticia en los registros académicos.</p>
+          <p>La implementación no guarda tokens de acceso ni de actualización de Google en la cuenta. No incluye publicidad, venta de datos ni herramientas de analítica de terceros.</p>
+
+          <h2 class="h4 mt-4">Sesiones y conservación</h2>
+          <p>La cookie funcional de sesión permite mantener el acceso durante un máximo de ocho horas. El estado temporal del inicio con Google caduca en cinco minutos. Cerrar sesión invalida el acceso de esa sesión.</p>
+          <p>Los datos de la cuenta y los registros permanecen en la base hasta que el equipo los elimine. El prototipo no tiene borrado automático de cuentas ni un botón de eliminación. Para consultar, corregir o solicitar la eliminación de tus datos, contacta al equipo académico o al correo de asistencia mostrado en la pantalla de acceso de Google. No publiques información personal en los issues del repositorio.</p>
+          <p>Puedes retirar el acceso de Google desde <a href="https://myaccount.google.com/connections">las conexiones de tu Cuenta de Google</a>. Eso no elimina por sí solo la cuenta ni los datos que ya estén guardados en Vigía.</p>
+          <p class="hint mt-4">El tratamiento que hace Google de tu cuenta se explica en su <a href="https://policies.google.com/privacy">Política de Privacidad</a>. Este aviso describe el funcionamiento actual del prototipo académico.</p>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>
